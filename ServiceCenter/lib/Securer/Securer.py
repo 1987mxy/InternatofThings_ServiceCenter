@@ -9,7 +9,7 @@ from struct import unpack
 
 class Securer(object):
 	'''
-	classdocs
+	保卫者，用来建立TCP连接后的动态口令校验
 	'''
 
 	def __init__(self):
@@ -19,7 +19,7 @@ class Securer(object):
 		self.__now = 0
 		self.switch = True
 		
-	def read(self):
+	def __read(self):
 		self.__now = int( time.time() )
 		
 		keyFile = open('./Key','rb')
@@ -38,7 +38,3 @@ class Securer(object):
 	def check(self, key):
 		if not self.switch: return True
 		return ( int(key) in self.__read() ) 
-
-#unit test
-t = Securer()
-print t.read()
