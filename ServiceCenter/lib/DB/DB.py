@@ -1,10 +1,9 @@
+#coding=UTF-8
 '''
 Created on 2012-8-19
 
 @author: XPMUser
 '''
-
-
 
 class DB(object):
 	'''
@@ -14,7 +13,7 @@ class DB(object):
 
 	def __init__(self):
 		import sqlite3
-		import os.path.isfile
+		import os.path
 		if os.path.isfile( 'Data.dat' ):
 			self.__db = sqlite3.connect('Data.dat')
 		else:
@@ -37,7 +36,7 @@ class DB(object):
 		
 	def setTerminal(self, ip, mac):
 		self.removeTerminal( ip, mac )
-		cur = self.__db.execute( 'INSERT INTO terminal( IPv4, Mac, Type, IsActive ) VALUES( "%s", "%s", 1, 0 )'%( ip, mac ) )
+		self.__db.execute( 'INSERT INTO terminal( IPv4, Mac, Type, IsActive ) VALUES( "%s", "%s", 1, 0 )'%( ip, mac ) )
 		
 	def removeTerminal(self, ip='', mac=''):
 		where = ''
@@ -62,17 +61,17 @@ class DB(object):
 	def frozenTerminal(self, ip):
 		self.__db.execute( 'UPDATE terminal SET IsActive=0 WHERE IPv4="%s"'%ip )
 		
-	def setPackage(self, protocal, name, code, struct, struct_label, memo=''):
-		if ( not protocal ) or ( not name ) or ( not code ) or ( not struct ) or ( not struct_label ):
+	def setPackage(self, protocal, name, direction, code, struct, memo=''):
+		if ( not protocal ) or ( not name ) or ( not direction ) or ( not code ) or ( not struct ):
 			return False
 		if self.existsPackage( name, code ):
 			return False
-		cur = self.__db.execute( 'INSERT INTO datapackage ( Protocol, Name, Code, Struct, StructLabel, Memo ) VALUES ( "%s", "%s", hex( %d ), "%s", "%s", "%s" )'
-									%( protocal, name, code, struct, struct_label, memo ) )
+		cur = self.__db.execute( 'INSERT INTO datapackage ( Protocol, Name, Direction, Code, Struct, Memo ) VALUES ( "%s", "%s", %d, "%s", "%s", "%s" )'
+									%( protocal, name, direction, code, struct, memo ) )
 		return cur.lastrowid
 	
 	def existsPackage(self, name='', code=''):
-		where = 'WHERE Name="%s" OR Code=hex( %s )'%( name, code )
+		where = 'WHERE Name="%s" OR Code=%s'%( name, code )
 		cur = self.__db.execute( 'SELECT * FROM datapackage %s'%where )
 		return cur.rowcount > 0
 	
@@ -81,21 +80,24 @@ class DB(object):
 		if name:
 			where = 'WHERE Name="%s" '%name
 		if code:
-			where = ( where and 'OR Code=hex( %s )'%code ) or 'WHERE Code=hex( %s )'%code
+			where = ( where and 'OR Code=%s'%code ) or 'WHERE Code=%s'%code
 		self.__db.execute( 'DELETE FROM datapackage %s'%where )
 		
-	def modifyPackage(self, package_id, protocal, name, code, struct, struct_label, memo=''):
-		if ( not protocal ) or ( not name ) or ( not code ) or ( not struct ) or ( not struct_label ):
+	def modifyPackage(self, package_id, protocal, name, direction, code, struct, memo=''):
+		if ( not protocal ) or ( not name ) or ( not direction ) or ( not code ) or ( not struct ):
 			return False
-		self.__db.execute( 'UPDATE datapackage SET Protocol="%s", Name="%s", Code=hex( %d ), Struct="%s", StructLabel="%s", Memo="%s" WHERE PackageID=%s'
-							%( protocal, name, code, struct, struct_label, memo, package_id ) )
+		self.__db.execute( 'UPDATE datapackage SET Protocol="%s", Name="%s", Direction=%d, Code=%d, Struct="%s", Memo="%s" WHERE PackageID=%d'
+							%( protocal, name, direction, code, struct, memo, package_id ) )
 		
 	def findAllPackages(self):
 		cur = self.__db.execute( 'SELECT * FROM datapackage' )
 		return cur.fetchall()
 		
 	def findPackage(self, code):
-		cur = self.__db.execute( 'SELECT * FROM datapackage WHERE Code=hex( %d )'%code )
+		cur = self.__db.execute( 'SELECT * FROM datapackage WHERE Code=%d'%code )
 		return cur.fetchone()
-	
-	
+
+
+#test case
+if __name__ == '__main__':
+	db = DB()
