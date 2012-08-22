@@ -10,7 +10,7 @@ from lib import Config
 
 class ServiceCenter(object):
 	'''
-	服务中心
+	
 	'''
 	def __init__(self):
 		'''

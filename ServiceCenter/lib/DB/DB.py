@@ -20,7 +20,6 @@ class DB(object):
 			self.__db = sqlite3.connect('Data.dat')
 			self.__install()
 		
-		
 	def __install(self):
 		sql_file = open('install.sql','rb')
 		sql = sql_file.read()
@@ -33,6 +32,28 @@ class DB(object):
 		for sql_line in self.__db.iterdump():
 			sql_file.write( sql_line )
 		sql_file.close()
+		
+	def insert(self, table, data):
+		pass
+	
+	def delete(self, table, where):
+		where = ( where and 'WHERE %s'%where ) or ''
+		
+		pass
+	
+	def update(self, table, data, where):
+		where = ( where and 'WHERE %s'%where ) or ''
+		self.__db.execute( 'DELETE FROM terminal %s'%where )
+		pass
+	
+	def select(self, table, where):
+		where = ( where and 'WHERE %s'%where ) or ''
+		cur = self.__db.execute( 'SELECT * FROM %s %s'%(table, where) )
+		return cur.fetchall()
+	
+	def query(self, sql):
+		cur = self.__db.execute( sql )
+		return cur
 		
 	def setTerminal(self, ip, mac):
 		self.removeTerminal( ip, mac )
@@ -48,7 +69,7 @@ class DB(object):
 
 	def existsTerminal(self, ip, mac):
 		where = 'WHERE IPv4="%s" AND Mac="%s"'%( ip, mac )
-		cur = self.__db.execute( 'SELECT * FROM datapackage %s'%where )
+		cur = self.__db.execute( 'SELECT * FROM terminal %s'%where )
 		return cur.rowcount > 0
 
 	def findAllTerminal(self):
@@ -93,11 +114,14 @@ class DB(object):
 		cur = self.__db.execute( 'SELECT * FROM datapackage' )
 		return cur.fetchall()
 		
-	def findPackage(self, code):
+	def codeFindPackage(self, code):
 		cur = self.__db.execute( 'SELECT * FROM datapackage WHERE Code=%d'%code )
 		return cur.fetchone()
 
-
+	def nameFindPackage(self, name):
+		cur = self.__db.execute( 'SELECT * FROM datapackage WHERE Name="%s"'%name )
+		return cur.fetchone()
+	
 #test case
 if __name__ == '__main__':
 	db = DB()

@@ -5,7 +5,7 @@ Created on 2012-8-10
 '''
 class Config(object):
 	'''
-	≈‰÷√
+	ÈÖçÁΩÆ
 	'''
 	innerPort = None
 	outerPort = None
@@ -18,6 +18,7 @@ srvCenterConf.innerPort = 8782
 srvCenterConf.outerPort = 8983
 srvCenterConf.magicCode = 0xDCBA
 srvCenterConf.heartCode = 0x0F0F
+srvCenterConf.headerStruct = '<HHHH'; 
 
 #===============================================================================
 # log
@@ -39,4 +40,4 @@ Status = 'debug'
 # PACKAGE
 #===============================================================================
 
-PACKAGE_SIZE = 600  #0x0003∞¸≥§∂»
+PACKAGE_SIZE = 600  #0x0003ÔøΩÔøΩ

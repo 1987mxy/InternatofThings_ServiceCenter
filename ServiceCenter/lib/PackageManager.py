@@ -1,4 +1,4 @@
-#coding=gbk
+#coding=utf-8
 from os import path as ospath
 from struct import pack, calcsize
 
@@ -11,7 +11,7 @@ def getBasicData():
 	pass
 	
 
-def pack1(cltlist_string, cmdpack):  #Ö¸Áî°ü
+def pack1(cltlist_string, cmdpack):  #Ö¸ï¿½ï¿½ï¿½
 	mdata_len = cltlist_string.__len__() + cmdpack.__len__()
 	package = pack('<HLHHL%ss'%mdata_len, 12 + mdata_len, 
 										  0xAAAC, 
@@ -21,7 +21,7 @@ def pack1(cltlist_string, cmdpack):  #Ö¸Áî°ü
 										  '%s%s'%(cltlist_string, cmdpack))
 	return package				   
 
-def pack2(result):  #·´À¡°ü
+def pack2(result):  #ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	package = pack('<HLHHL%ss'%result.__len__(), 12 + result.__len__(), 
 												 0xAAAC, 
 												 12 + result.__len__(), 
@@ -32,23 +32,23 @@ def pack2(result):  #·´À¡°ü
 
 
  
-def pack5():	#»ñÈ¡clientÁÐ±í²Ù×÷°ü
+def pack5():	#ï¿½ï¿½È¡clientï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		return '\x0c\x00\xac\xaa\x00\x00\x06\x00\x05\x00\x00\x00\x00\x00'
 	
-def pack6(heartID):	#ÐÄÌø°ü
+def pack6(heartID):	#ï¿½ï¿½ï¿½ï¿½ï¿½
 		heartIDString = pack('<L',heartID)
 		return '\x0c\x00\xac\xaa\x00\x00\x06\x00\x06\x00%s'%heartIDString
 
 def packSrvEnd():
 		return '\x0c\x00\xac\xaa\x00\x00\x06\x00\xf0\xf0\x00\x00\x00\x00'
 
-def packCltEnd():   #¸ø¿Í»§¶ËµÄ°ü·¢ËÍÍê³ÉÐÅÏ¢
+def packCltEnd():   #ï¿½ï¿½Í»ï¿½ï¿½ËµÄ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 		return '\x0c\x00\xac\xaa\x00\x00\x06\x00\xff\xff\x00\x00\x00\x00'
 	
-def packCtrlEnd():   #¸ø¿ØÖÆ¶ËµÄ°ü·¢ËÍÍê³ÉÐÅÏ¢
+def packCtrlEnd():   #ï¿½ï¿½ï¿½ï¿½Æ¶ËµÄ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 		return '\x0c\x00\xac\xaa\x00\x00\x06\x00\x00\xff\x00\x00\x00\x00'
 	   
-def packProxyEnd():   #¸ø¿ØÖÆ¶ËµÄ°ü·¢ËÍÍê³ÉÐÅÏ¢
+def packProxyEnd():   #ï¿½ï¿½ï¿½ï¿½Æ¶ËµÄ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 		return '\x0c\x00\xab\xaa\x00\x00\x06\x00\x00\xff\x00\x00\x00\x00'
 	
 	
@@ -57,3 +57,22 @@ def packRemoteStart( Mac ):
 	sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	package = binascii.a2b_hex('ffffffffffff'+Mac*16)
 	sock.sendto(package,('255.255.255.255',6666))
+	
+class PackageManager():
+	def __init__(self, db):
+		self.__db = db
+		self.__magicCode = None
+		
+	def config(self, config):
+		self.__magicCode = config.magicCode
+		self.__heartCode = config.heartCode
+		self.__headerStruct = config.headerStruct
+		
+	def getPackage(self, name):
+		packageDetail = self.__db.nameFindPackage(name)
+		
+		
+	def parsePackage(self, code, packageMain):
+		packageDetail = self.__db.codeFindPackage(code)
+		
+		pass
