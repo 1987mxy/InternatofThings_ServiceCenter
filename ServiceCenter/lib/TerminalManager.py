@@ -4,13 +4,12 @@ Created on 2012-8-23
 @author: XPMUser
 '''
 
-class Terminal(object):
+class TerminalManager(object):
 	'''
 	classdocs
 	'''
 
-
-	def __init__(selfparams):
+	def __init__(self):
 		'''
 		Constructor
 		'''

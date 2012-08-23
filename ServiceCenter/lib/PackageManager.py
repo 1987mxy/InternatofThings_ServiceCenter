@@ -6,6 +6,8 @@ from Config import PACKAGE_SIZE
 from lib.Tools import runCMD,chkPath
 from lib.Log import LOG
 
+import re.findall
+
 
 def getBasicData():
 	pass
@@ -59,20 +61,72 @@ def packRemoteStart( Mac ):
 	sock.sendto(package,('255.255.255.255',6666))
 	
 class PackageManager():
+	
 	def __init__(self, db):
 		self.__db = db
+		self.__table = 'datapackage'
 		self.__magicCode = None
+		self.__heartCode = None
+		self.__headerStruct = None
 		
 	def config(self, config):
 		self.__magicCode = config.magicCode
 		self.__heartCode = config.heartCode
 		self.__headerStruct = config.headerStruct
 		
-	def getPackage(self, name):
-		packageDetail = self.__db.nameFindPackage(name)
-		
-		
-	def parsePackage(self, code, packageMain):
-		packageDetail = self.__db.codeFindPackage(code)
-		
+	def getHeader(self):
 		pass
+		
+	def generatePackage(self, name, data):
+		packageDetail = self.nameFindPackage(name)
+		struct = re.findall( '\d[xcbB?hHiIlLqQfdspP]', packageDetail['Struct'] )
+		structLabel = str.split( ',', packageDetail['StructLabel'] )
+		
+	def parsePackage(self, code, package):
+		packageDetail = self.codeFindPackage(code)
+	
+	def setPackage(self, packageInfo):
+		for field, value in packageInfo:
+			if value == '' and field != 'memo':
+				return False
+		if self.existsPackage( packageInfo[ 'name' ], packageInfo[ 'code' ] ):
+			return False
+		cur = self.__db.insert( self.__table, packageInfo )
+		return cur.lastrowid
+	
+	def existsPackage(self, name='', code=''):
+		where = 'Name="%s" OR Code=%s'%( name, code )
+		count = self.__db.count( self.__table, where )
+		return count > 0
+	
+	def removePackage(self, name='', code=''):
+		where = ''
+		if name:
+			where = 'WHERE Name="%s" '%name
+		if code:
+			where = ( where and 'OR Code=%s'%code ) or 'WHERE Code=%s'%code
+		self.__db.delete( self.__table, where )
+		return self.__db.rowcount
+		
+	def modifyPackage(self, packageID, packageInfo):
+		for field, value in packageInfo:
+			if value == '' and field != 'memo':
+				return False
+		where = 'PackageID=%d' % packageID
+		self.__db.update( self.__table, packageInfo, where )
+		return self.__db.rowcount
+	
+	def findAllPackages(self):
+		cur = self.__db.select( self.__table )
+		return cur.fetchall()
+		
+	def codeFindPackage(self, code):
+		where = 'Code=%d'%code
+		cur = self.__db.select( self.__table, where )
+		return cur.fetchone()
+
+	def nameFindPackage(self, name):
+		where = 'Name="%s"'%name
+		cur = self.__db.select( self.__table, where )
+		return cur.fetchone()
+		
