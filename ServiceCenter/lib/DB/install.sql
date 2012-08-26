@@ -21,5 +21,5 @@ Create TABLE MAIN.[Terminal](
 	,[IPv4] varchar(15) UNIQUE COLLATE RTRIM
 	,[Mac] varchar(17) UNIQUE NOT NULL COLLATE RTRIM
 	,[Type] varchar(16) NOT NULL COLLATE RTRIM
-	,[LastActive] integer NOT NULL COLLATE NOCASE
+	,[LastActive] integer COLLATE NOCASE
 );

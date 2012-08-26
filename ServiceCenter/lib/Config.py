@@ -7,11 +7,13 @@ class Config(object):
 	'''
 	配置
 	'''
-	innerPort = None
-	outerPort = None
-	magicCode = None
-	heartCode = None
-	responseCode = None
+	
+	def __init__(self):
+		self.innerPort = None
+		self.outerPort = None
+		self.magicCode = None
+		self.heartCode = None
+		self.responseCode = None
 	
 srvCenterConf = Config()
 srvCenterConf.innerPort = 8782
@@ -40,4 +42,4 @@ Status = 'debug'
 # PACKAGE
 #===============================================================================
 
-PACKAGE_SIZE = 600  #0x0003��
+RUN = True

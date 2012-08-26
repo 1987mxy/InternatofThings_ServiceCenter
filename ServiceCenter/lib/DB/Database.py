@@ -36,23 +36,31 @@ class Database(object):
 		columnList = []
 		for field, value in data:
 			columnList.append( '%s="%s"' % ( field, value ) )
-		self.__db.execute( 'INSERT INTO %s SET %s' % ( table, str.join( ', ', columnList ) ) )
+		cur = self.__db.execute( 'INSERT INTO %s SET %s' % ( table, str.join( ', ', columnList ) ) )
+		return cur.lastrowid
 	
 	def delete(self, table, where=''):
 		where = ( where and 'WHERE %s' % where ) or ''
-		self.__db.execute( 'DELETE FROM %s %s'%( table, where ) )
+		cur = self.__db.execute( 'DELETE FROM %s %s'%( table, where ) )
+		return cur.rowcount
 	
 	def update(self, table, data, where=''):
 		columnList = []
 		for field, value in data:
 			columnList.append( '%s="%s"' % ( field, value ) )
 		where = ( where and 'WHERE %s' % where ) or ''
-		self.__db.execute( 'UPDATE %s SET %s %s' % ( table, str.join( ', ', columnList ), where ) )
+		cur = self.__db.execute( 'UPDATE %s SET %s %s' % ( table, str.join( ', ', columnList ), where ) )
+		return cur.rowcount
 	
 	def select(self, table, where=''):
 		where = ( where and 'WHERE %s'%where ) or ''
 		cur = self.__db.execute( 'SELECT * FROM %s %s'%(table, where) )
 		return cur.fetchall()
+	
+	def selectOne(self, table, where=''):
+		where = ( where and 'WHERE %s'%where ) or ''
+		cur = self.__db.execute( 'SELECT * FROM %s %s Limit 0, 1'%(table, where) )
+		return cur.fetchone()
 	
 	def count(self, table, where=''):
 		where = ( where and 'WHERE %s'%where ) or ''
@@ -63,37 +71,5 @@ class Database(object):
 		cur = self.__db.execute( sql )
 		return cur
 	
-################################################
-		
-	def setTerminal(self, ip, mac):
-		self.removeTerminal( ip, mac )
-		self.__db.execute( 'INSERT INTO terminal( IPv4, Mac, Type, IsActive ) VALUES( "%s", "%s", 1, 0 )'%( ip, mac ) )
-		
-	def removeTerminal(self, ip='', mac=''):
-		where = ''
-		if ip:
-			where = 'WHERE IPv4="%s" '%ip
-		if mac:
-			where = ( where and 'OR Mac="%s"'%mac ) or 'WHERE Mac="%s"'%mac
-		self.__db.execute( 'DELETE FROM terminal %s'%where )
-
-	def existsTerminal(self, ip, mac):
-		where = 'WHERE IPv4="%s" AND Mac="%s"'%( ip, mac )
-		cur = self.__db.execute( 'SELECT * FROM terminal %s'%where )
-		return cur.rowcount > 0
-
-	def findAllTerminal(self):
-		cur = self.__db.execute( 'SELECT * FROM terminal' )
-		return cur.fetchall()
-	
-	def activateTerminal(self, ip):
-		self.__db.execute( 'UPDATE terminal SET IsActive=1 WHERE IPv4="%s"'%ip )
-		
-	def frozenTerminal(self, ip):
-		self.__db.execute( 'UPDATE terminal SET IsActive=0 WHERE IPv4="%s"'%ip )
-		
-
-	
-#test case
-if __name__ == '__main__':
-	db = DB()
+from sys import modules
+modules[__name__] = Database()
