@@ -1,10 +1,12 @@
 '''
-Created on 2012-8-26
+Created on 2012-8-28
 
 @author: XPMUser
 '''
 
-class Event(object):
+import pyDes
+
+class MyDes(object):
 	'''
 	classdocs
 	'''

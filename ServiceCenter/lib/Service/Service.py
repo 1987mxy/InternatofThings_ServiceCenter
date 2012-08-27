@@ -8,7 +8,7 @@ import threading
 import time.sleep
 
 from traceback import format_exc
-from struct import unpack
+from struct import unpack, calcsize
 
 from lib.Log import LOG
 
@@ -35,10 +35,12 @@ class Service(object):
 		self.__recvThread = None
 		self.__mainThread = None
 		self.__chkThread = None
+		self.__threadCondition = None
 		
 		self.__magicCode = None
 		self.__heartCode = None
 		self.__headerStruct = None
+		self.__headerSize = None
 		
 		self.__packager = None
 		
@@ -46,11 +48,13 @@ class Service(object):
 		self.__magicCode = config.magicCode
 		self.__heartCode = config.heartCode
 		self.__headerStruct = config.headerStruct
+		self.__headerSize = calcsize( self.__headerStruct )
 		
 	def setPackager(self, packager):
 		self.__packager = packager
 		
 	def running(self):
+		self.__threadCondition = threading.Condition()
 		self.__recvThread = threading.Thread(target=self.receive)
 		self.__mainThread = threading.Thread(target=self.main)
 	
@@ -74,16 +78,16 @@ class Service(object):
 			self.shutdown()
 
 	def parseHeader(self, stream):
-		if len(stream) >= 8:
-			head = unpack(self.__headStruct, stream[:8])
+		if len(stream) >= self.__headerSize:
+			head = unpack(self.__headStruct, stream[ : self.__headerSize])
 			if head[1] != self.__magicCode:
 				LOG.error('receive invalid package from %s : '%self.__address, stream)
 				self.shutdown()
 			if head[0] + 2 <= len(stream):
-				mStream = stream[8 : head[0] + 2]
+				mStream = stream[self.__headerSize : head[0] + 2]
 				stream = stream[head[0] + 2 : ]
 				if head[2] != self.__heartCode:
-					self.queue.insert(0, [head[2], mStream])
+					self.queue.insert(0, [head[3], head[2], mStream])
 				stream = self.parseHead(stream)
 		return stream
 

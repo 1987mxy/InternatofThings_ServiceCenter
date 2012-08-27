@@ -19,7 +19,8 @@ class _TerminalManager(object):
 		self.__db = None
 		self.__table = 'terminal'
 	
-	def instance(self, db):
+	@staticmethod
+	def instance(db):
 		if _TerminalManager.__me == None:
 			_TerminalManager.__me = _TerminalManager()
 			_TerminalManager.__me.setDB( db )
@@ -50,6 +51,14 @@ class _TerminalManager(object):
 
 	def findAllTerminal(self):
 		return self.__db.select( self.__table )
+	
+	def nameFindTerminal(self, name):
+		where = 'Name="%s"'%name
+		return self.__db.selectOne( self.__table, where )
+
+	def idFindTerminal(self, terminalID):
+		where = 'TerminalID=%s'%terminalID
+		return self.__db.selectOne( self.__table, where )
 	
 	def activateTerminal(self, ip):
 		now = int( time.time() )

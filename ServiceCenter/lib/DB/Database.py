@@ -5,10 +5,11 @@ Created on 2012-8-19
 @author: XPMUser
 '''
 
-class Database(object):
+class _Database(object):
 	'''
 	数据库类，用来操作“数据包表”和“终端表”
 	'''
+	__me = None
 
 	def __init__(self):
 		import sqlite3
@@ -18,6 +19,14 @@ class Database(object):
 		else:
 			self.__db = sqlite3.connect('Data.dat')
 			self.__install()
+		
+	@staticmethod
+	def instance():
+		if _Database.__me == None:
+			_Database.__me = _Database()
+		else:
+			return _Database.__me
+		pass
 		
 	def __install(self):
 		sql_file = open( 'install.sql', 'rb' )
@@ -72,4 +81,4 @@ class Database(object):
 		return cur
 	
 from sys import modules
-modules[__name__] = Database()
+modules[__name__] = _Database.instance()

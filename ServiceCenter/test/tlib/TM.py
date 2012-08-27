@@ -1,10 +1,10 @@
 '''
-Created on 2012-8-26
+Created on 2012-8-27
 
 @author: XPMUser
 '''
 
-class Event(object):
+class TM(object):
 	'''
 	classdocs
 	'''
@@ -15,4 +15,8 @@ class Event(object):
 		'''
 		pass
 	
+	def t(self):
+		print '1aaaa'
 	
+import sys
+sys.modules[__name__] = TM()

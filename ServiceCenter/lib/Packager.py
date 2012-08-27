@@ -30,17 +30,18 @@ class _Packager():
 		self.__magicCode = config.magicCode
 		self.__heartCode = config.heartCode
 		self.__headerStruct = config.headerStruct
+		self.__headerSize = calcsize( self.__headerStruct )
 
 	def genHeader(self, bodySize, code, pid):
-		return pack( self.__headerStruct, bodySize + 6, 
+		return pack( self.__headerStruct, bodySize + self.__headerSize - 2, 
 											self.__magicCode, 
 											code, 
 											pid )
 
 	def parseHeader(self, header):
-		return unpack( self.__headerStruct )
+		return unpack( self.__headerStruct, header )
 
-	def genePackage(self, name, pid, data):
+	def genPackage(self, name, pid, data=[]):
 		packageDetail = self.nameFindPackage( name )
 		if packageDetail['Struct'] == '':
 			return ''
@@ -64,15 +65,16 @@ class _Packager():
 			struct = '%s%d%s' % ( struct[:-1], surplusLen, struct[-1] )
 		groupCount = len( package ) / calcsize( struct )
 		data = unpack( '<%s' % ( struct * groupCount ) )
-		structLabel = str.split( ',', packageDetail['StructLabel'] )
-		structLabelCount = len( structLabel )
-		packageData = []
-		for i in range( groupCount ):
-			thePackageData = {}
-			for j in range( structLabelCount ):
-				thePackageData[ structLabel[ j ] ] = data[ structLabelCount * i + j ]
-			packageData.append( thePackageData )
-		return packageData
+		return data
+#		structLabel = str.split( ',', packageDetail['StructLabel'] )
+#		structLabelCount = len( structLabel )
+#		packageData = []
+#		for i in range( groupCount ):
+#			thePackageData = {}
+#			for j in range( structLabelCount ):
+#				thePackageData[ structLabel[ j ] ] = data[ structLabelCount * i + j ]
+#			packageData.append( thePackageData )
+#		return packageData
 	
 	def setPackage(self, packageInfo):
 		for field, value in packageInfo:
