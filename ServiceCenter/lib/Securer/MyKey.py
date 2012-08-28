@@ -7,7 +7,7 @@ Created on 2012-8-14
 import time
 from struct import unpack
 
-class Securer(object):
+class MyKey(object):
 	'''
 	保卫者，用来建立TCP连接后的动态口令校验
 	'''

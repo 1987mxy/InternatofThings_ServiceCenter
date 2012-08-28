@@ -6,8 +6,8 @@
 	,[StructLabel] text NOT NULL COLLATE RTRIM
 	,[Memo] text COLLATE NOCASE
 );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'PubKey', 1, '56s', 'pubkey', '公钥' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'Key', 2, '47s', 'password', '口令' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'PubKey', 1, '32s', 'pubkey', '公钥' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'Key', 2, '23s', 'password', '口令' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'Response', 3, '', '', '响应' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'ShutDown', 4, '', '', '断开' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID','远程唤醒' );
