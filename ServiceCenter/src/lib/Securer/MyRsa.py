@@ -22,16 +22,16 @@ class MyRsa(object):
 	def generate(self):
 		( self.__publicKey, self.__privateKey ) = rsa.newkeys( 178 )		#8byte(desKey)+4byte(myKey)需要178
 		
-	def publicCrypt(self, type, data):
-		if type == 'encrypt':
+	def publicCrypt(self, operate, data):
+		if operate == 'encrypt':
 			return rsa.encrypt( data, self.__publicKey )
-		elif type == 'decrypt':
+		elif operate == 'decrypt':
 			return rsa.decrypt( data, self.__publicKey )
 
-	def privateCrypt(self, type, data):
-		if type == 'encrypt':
+	def privateCrypt(self, operate, data):
+		if operate == 'encrypt':
 			return rsa.encrypt( data, self.__privateKey )
-		elif type == 'decrypt':
+		elif operate == 'decrypt':
 			return rsa.decrypt( data, self.__privateKey )
 	
 	def getPubKey(self):

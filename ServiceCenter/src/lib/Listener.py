@@ -7,6 +7,7 @@ Created on 2012-8-22
 import socket, threading
 from lib.Log import LOG
 from lib.Config import RUN
+from lib.Service import InnerService, OuterService
 
 class Listener(object):
 	'''
@@ -40,8 +41,8 @@ class Listener(object):
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Inner service connected...'%addr)
-			inner = innerService(sockclient, addr)
-			threading.Thread(target=inner.running).start()
+			inner = InnerService(sockclient, addr)
+			inner.running()
 		sock.close()
 	
 	def __outerListener(self):
@@ -52,8 +53,8 @@ class Listener(object):
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Outer service connected...'%addr)
-			outer = outerService(sockclient, addr)
-			threading.Thread(target=outer.outer.running).start()
+			outer = OuterService(sockclient, addr)
+			outer.running()
 		sock.close()
 		
 		

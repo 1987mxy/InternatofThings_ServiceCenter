@@ -4,7 +4,12 @@ Created on 2012-8-23
 @author: XPMUser
 '''
 
-import time
+from time import time
+import socket
+from os import getpid
+
+from lib.TerminalManager import icmp
+from lib import Tools
 
 class _TerminalManager(object):
 	'''
@@ -19,7 +24,8 @@ class _TerminalManager(object):
 		self.__db = None
 		self.__table = 'terminal'
 
-		self.__status = []
+		self.__status = {}
+		self.__gapTime = 5
 		
 		self.__switch = True
 	
@@ -35,7 +41,29 @@ class _TerminalManager(object):
 	def setDB(self, db):
 		self.__db = db
 		
-	def run(self):
+	def supervisor(self):
+		icmpProtocol = socket.getprotobyname("icmp")
+		my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmpProtocol)
+		my_ID = getpid() & 0xFFFF
+		
+		for terminal in self.findAllTerminal():
+			self.__status[ terminal[ 'IPv4' ] ] = False
+		
+		ip = Tools.getIP()
+		netmark = Tools.getNermark()
+		
+		ipBit = socket.inet_aton( ip )
+		netmarkBit = socket.inet_aton( netmark )
+		netAddrBit = ipBit & netmarkBit
+		
+		ipCount = netmarkBit ^ 0xffffffff
+		
+		for i in range( 1, ipCount ):
+			dest_addr = socket.inet_ntoa( netAddrBit + i )
+			icmp.send_one_ping(my_socket, dest_addr, my_ID)
+			delay = icmp.receive_one_ping(my_socket, my_ID, 2)
+			
+		my_socket.close()
 		pass
 	
 	def stop(self):
@@ -71,7 +99,7 @@ class _TerminalManager(object):
 		return self.__db.selectOne( self.__table, where )
 	
 	def activateTerminal(self, ip):
-		now = int( time.time() )
+		now = int( time() )
 		terminalInfo = { 'LastActive': now }
 		where = 'IPv4="%s"'
 		self.__db.update( self.__table, terminalInfo, where )

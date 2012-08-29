@@ -19,8 +19,11 @@ class OuterService(Service):
 	'''
 	classdocs
 	'''
+	server = {}
 
 	def __init__(self, socket, address):
+		OuterService.server[ address ] = self
+		
 		super( OuterService, self ).__init__( socket, address )
 		
 		self.__terminalManager = TerminalManager

@@ -1,22 +1,11 @@
 #coding=gbk
-from os import popen,path
+from os import popen
 from time import sleep
-from re import split
+from re import split, findall, M
 import socket
+import platform.system
 
 from lib.Log import LOG
-
-def runCMD(command):
-	result = popen(command)
-	result = result.read()
-	strlog = '[%s]%s'%(command, result)
-	LOG.debug(strlog)
-	return result
-
-def chkPath(filepath):
-	if not path.exists(filepath):
-		runCMD(r'mkdir "%s"'%filepath)
-		sleep(3)
 		
 #def killProcess(processName):
 #	tasklist = popen('tasklist /FI "IMAGENAME eq %s"'%processName).readlines()
@@ -48,3 +37,20 @@ def killProcess(processName):
 def getIP():
 	host = socket.gethostname()
 	return socket.gethostbyname( host )
+
+def getNermark():
+	netmarkPool = ['128.0.0.0','192.0.0.0','224.0.0.0','240.0.0.0','248.0.0.0','252.0.0.0','254.0.0.0','255.0.0.0',
+					'255.128.0.0','255.192.0.0','255.224.0.0','255.240.0.0','255.248.0.0','255.252.0.0','255.254.0.0','255.255.0.0',
+					'255.255.128.0','255.255.192.0','255.255.224.0','255.255.240.0','255.255.248.0','255.255.252.0','255.255.254.0','255.255.255.0',
+					'255.255.255.128','255.255.255.192','255.255.255.224','255.255.255.240','255.255.255.248','255.255.255.252','255.255.255.254']
+	systemName = platform.system()
+	if systemName == 'Windows':
+		ipCommand = 'ipconfig'
+	elif systemName == 'Linux':
+		ipCommand = 'ifconfig'
+	ipInfo = popen( ipCommand ).read()
+	
+	for theNetmark in netmarkPool:
+		netmark = findall( theNetmark, ipInfo, M )
+		if netmark:
+			return netmark.pop()
