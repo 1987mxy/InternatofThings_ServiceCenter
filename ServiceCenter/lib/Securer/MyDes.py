@@ -33,8 +33,8 @@ class MyDes(object):
 	def __generate(self):
 		self.__desKey = des( self.__key, CBC, bytearray( 8 ), pad=None, padmode=PAD_PKCS5 )
 		
-	def encrypt(self, plaintext):
-		return self.__desKey.encrypt( plaintext )
-	
-	def decrypt(self, ciphertext):
-		return self.__desKey.decrypt( ciphertext )
+	def crypt(self, type, data):
+		if type == 'encrypt':
+			return self.__desKey.encrypt( data )
+		elif type == 'decrypt':
+			return self.__desKey.decrypt( data )

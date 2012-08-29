@@ -1,4 +1,6 @@
+#Wed Aug 29 09:13:26 CST 2012
 eclipse.preferences.version=1
 encoding//lib/Log.py=gbk
 encoding//lib/Packager.py=UTF-8
+encoding//lib/Service/OuterService.py=UTF-8
 encoding//lib/Tools.py=gbk

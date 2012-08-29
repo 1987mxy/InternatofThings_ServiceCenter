@@ -14,6 +14,8 @@ class _Packager():
 		self.__heartCode = None
 		self.__headerStruct = None
 
+		self.__encipherer = {}
+		
 	@staticmethod
 	def instance(db, config):
 		if _Packager.__me == None:
@@ -32,6 +34,9 @@ class _Packager():
 		self.__headerStruct = config.headerStruct
 		self.__headerSize = calcsize( self.__headerStruct )
 
+	def setEncipherer(self, type, encipherer):
+		self.__encipherer[ type ] = encipherer
+
 	def genHeader(self, bodySize, code, pid):
 		return pack( self.__headerStruct, bodySize + self.__headerSize - 2, 
 											self.__magicCode, 
@@ -42,10 +47,10 @@ class _Packager():
 		return unpack( self.__headerStruct, header )
 
 	def genPackage(self, name, pid, data=[]):
-		packageDetail = self.nameFindPackage( name )
-		if packageDetail['Struct'] == '':
+		packDetail = self.nameFindPackage( name )
+		if packDetail['Struct'] == '':
 			return ''
-		struct = packageDetail['Struct']
+		struct = packDetail['Struct']
 		structCount = findall( '\d+[xcbB?hHiIlLqQfdspP]', struct ).__len__()
 		groupCount = len( data ) / structCount
 		if len( data ) % structCount != 0 or ( struct[-1] in ['s', 'p'] and groupCount != 1 ):
@@ -53,20 +58,30 @@ class _Packager():
 
 		if struct[-1] in ['s', 'p']:
 			struct = '%s%d%s'%( struct[:-1], len( data[-1] ), struct[-1] )
-		bodySize = calcsize( struct ) * groupCount
-		return '%s%s' % ( self.genHeader( bodySize, packageDetail['Struct'], pid ), 
-							pack( '<%s' % ( struct * groupCount ), *data ) )
+		packBody = pack( '<%s' % ( struct * groupCount ), *data )
+		#加密
+		if packDetail['Encrypt'] in self.__encipherer.keys():
+			packBody = self.__encipherer[ packDetail['Encrypt'] ]( 'encrypt', packBody )
+		bodySize = len( packBody )
 		
-	def parsePackage(self, code, package):
-		packageDetail = self.codeFindPackage( code )
-		struct = packageDetail['Struct']
+		return '%s%s' % ( self.genHeader( bodySize, packDetail['Struct'], pid ), 
+							packBody )
+		
+	def parsePackage(self, code, packBody):
+		packDetail = self.codeFindPackage( code )
+		
+		#解密
+		if packDetail['Encrypt'] in self.__encipherer.keys():
+			packBody = self.__encipherer[ packDetail['Encrypt'] ]( 'decrypt', packBody )
+		
+		struct = packDetail['Struct']
 		if struct[-1] in ['s', 'p']:
-			surplusLen = len( package ) - calcsize( struct[:-1] )
+			surplusLen = len( packBody ) - calcsize( struct[:-1] )
 			struct = '%s%d%s' % ( struct[:-1], surplusLen, struct[-1] )
-		groupCount = len( package ) / calcsize( struct )
+		groupCount = len( packBody ) / calcsize( struct )
 		data = unpack( '<%s' % ( struct * groupCount ) )
 		return data
-#		structLabel = str.split( ',', packageDetail['StructLabel'] )
+#		structLabel = str.split( ',', packDetail['StructLabel'] )
 #		structLabelCount = len( structLabel )
 #		packageData = []
 #		for i in range( groupCount ):
@@ -114,6 +129,10 @@ class _Packager():
 	def nameFindPackage(self, name):
 		where = 'Name="%s"'%name
 		return self.__db.selectOne( self.__table, where )
+	
+	def existsReply(self, name):
+		where = 'Name="%s"'%name
+		return self.__db.selectOne( self.__table, where )['ExistReply'] == 0b1
 
 from sys import modules
 from lib.DB import Database

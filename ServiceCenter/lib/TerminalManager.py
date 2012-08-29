@@ -18,6 +18,10 @@ class _TerminalManager(object):
 		'''
 		self.__db = None
 		self.__table = 'terminal'
+
+		self.__status = []
+		
+		self.__switch = True
 	
 	@staticmethod
 	def instance(db):
@@ -30,6 +34,12 @@ class _TerminalManager(object):
 	
 	def setDB(self, db):
 		self.__db = db
+		
+	def run(self):
+		pass
+	
+	def stop(self):
+		self.__switch = False
 		
 	def setTerminal(self, ip, mac):
 		self.removeTerminal( ip, mac )

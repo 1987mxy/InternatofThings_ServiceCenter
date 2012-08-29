@@ -14,13 +14,15 @@ class Config(object):
 		self.magicCode = None
 		self.heartCode = None
 		self.responseCode = None
+		self.timeout = None
 	
 srvCenterConf = Config()
 srvCenterConf.innerPort = 8782
 srvCenterConf.outerPort = 8983
 srvCenterConf.magicCode = 0xDCBA
 srvCenterConf.heartCode = 0x0F0F
-srvCenterConf.headerStruct = '<HHHH'; 
+srvCenterConf.headerStruct = '<HHHH'
+srvCenterConf.timeout = 0
 
 #===============================================================================
 # log

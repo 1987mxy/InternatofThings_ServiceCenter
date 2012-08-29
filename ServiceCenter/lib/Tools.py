@@ -2,6 +2,7 @@
 from os import popen,path
 from time import sleep
 from re import split
+import socket
 
 from lib.Log import LOG
 
@@ -43,3 +44,7 @@ def killProcess(processName):
 		return '关闭%s进程成功\n'%processName
 	else:
 		return ''
+	
+def getIP():
+	host = socket.gethostname()
+	return socket.gethostbyname( host )

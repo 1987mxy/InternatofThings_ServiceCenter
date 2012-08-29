@@ -1,3 +1,4 @@
+#coding=UTF-8
 '''
 Created on 2012-8-14
 
@@ -5,7 +6,7 @@ Created on 2012-8-14
 '''
 
 import threading
-import time.sleep
+from time import sleep
 
 from traceback import format_exc
 from struct import unpack, calcsize
@@ -19,9 +20,9 @@ class Service(object):
 
 	def __init__(self, socket, address):
 		'''
-		构造函数
+		服务抽象类
 		'''
-		if self.__class__ is Service:	#抽象类不能被实例化
+		if self.__class__ is Service:	#抽象类不能实例化
 			LOG.error('Net class dose not instantiation')
 			raise 'Net class dose not instantiation'
 		
@@ -29,13 +30,14 @@ class Service(object):
 		self.__sock = socket
 		self.__switch = True
 		self.__isAlive = True
-		self.__hadResp = True
-		self.__queue = []
+		self.__pid = 0
+		self.__packQueue = []
+		self.__timeout = 30
 
 		self.__recvThread = None
 		self.__mainThread = None
 		self.__chkThread = None
-		self.__threadCondition = None
+		self.__commCondition = None
 		
 		self.__magicCode = None
 		self.__heartCode = None
@@ -49,14 +51,15 @@ class Service(object):
 		self.__heartCode = config.heartCode
 		self.__headerStruct = config.headerStruct
 		self.__headerSize = calcsize( self.__headerStruct )
+		self.__timeout = config.timeout
 		
 	def setPackager(self, packager):
 		self.__packager = packager
 		
 	def running(self):
-		self.__threadCondition = threading.Condition()
-		self.__recvThread = threading.Thread(target=self.receive)
-		self.__mainThread = threading.Thread(target=self.main)
+		self.__commCondition = threading.Condition()
+		self.__recvThread = threading.Thread( target = self.receive )
+		self.__mainThread = threading.Thread( target = self.main )
 	
 	def receive(self):
 		try:
@@ -87,22 +90,17 @@ class Service(object):
 				mStream = stream[self.__headerSize : head[0] + 2]
 				stream = stream[head[0] + 2 : ]
 				if head[2] != self.__heartCode:
-					self.queue.insert(0, [head[3], head[2], mStream])
+					self.__packQueue.insert(0, [head[3], head[2], mStream])
+					self.__commCondition.notify()
 				stream = self.parseHead(stream)
 		return stream
 
-	def chkHeart(self, gap_time):
+	def chkHeart(self):
 		while self.__isAlive and self.__switch:
 			self.__isAlive = False
-			time.sleep( gap_time )
+			sleep( self.__timeout )
 		if self.__switch:
 			LOG.error('%s heart time out !'%self.__address)
-			self.shutdown()
-			
-	def chkResponse(self, gap_time):
-		time.sleep( gap_time )
-		if self.__hadResp == False:
-			LOG.error('%s response time out !'%self.__address)
 			self.shutdown()
 			
 	def send(self, stream):
