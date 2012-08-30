@@ -1,16 +1,17 @@
+#coding=UTF-8
 '''
 Created on 2012-8-14
 
 @author: Moxiaoyong
 '''
 
-from lib.Service import Service
-
 import threading
 
-class InnerService(Service):
+import Service
+
+class InnerService(Service.Service):
 	'''
-	classdocs
+	内部服务器，面向局域网的各种终端
 	'''
 	
 	def __init__(self, socket, address):

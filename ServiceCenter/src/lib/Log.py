@@ -7,8 +7,6 @@ from os import path,mkdir
 from lib import Config
 
 LOG = None
-uuidLog = None
-heartLog = None
 
 class mylog(object):
 	def __init__(self, logger):
@@ -87,21 +85,6 @@ def _pathrule(logtype, filetype = 'log'):
 		mkdir("log")
 	return r'./log/%s_%s.%s'%(time, logtype, filetype)
 	
-#def get_screen():
-#	hwnd = 0
-#	hwndDC = GetWindowDC(hwnd)
-#	mfcDC = CreateDCFromHandle(hwndDC)
-#	saveDC = mfcDC.CreateCompatibleDC()
-#	saveBitMap = CreateBitmap()
-#	MoniterDev = EnumDisplayMonitors(None,None)
-#	w = MoniterDev[0][2][2]
-#	h = MoniterDev[0][2][3]
-#	saveBitMap.CreateCompatibleBitmap(mfcDC, w, h)
-#	saveDC.SelectObject(saveBitMap)
-#	saveDC.BitBlt((0,0),(w, h) , mfcDC, (0,0), SRCCOPY)  
-#	bmpname = _pathrule('error', 'bmp')
-#	saveBitMap.SaveBitmapFile(saveDC, bmpname)
-	
 def run_log():
 #	runlog
 	global LOG
@@ -126,53 +109,5 @@ def run_log():
 	LOG = mylog(rlog)
 	#print LOG
 
-#===============================================================================暂不统计性能指数
-# def performance_log():
-#	plog = mylog.getLogger('performancelog')
-#	logging.setLevel(mylog.INFO)
-#	lpath = _pathrule('performance')
-#	logfile = mylog.FileHandler(lpath, "w")
-#	logfile.setLevel(mylog.INFO)
-#	fmt = mylog.Formatter("%(message)s")
-#	logfile.setFormatter(fmt)
-#	logging.addHandler(logfile)
-#	if settings.PRINT_PERFORMANCELOG and settings.PRINT_LOG:
-#		display = mylog.StreamHandler(stdout)
-#		display.setLevel(mylog.INFO)
-#		logging.addHandler(display)  #print to scree
-#	myplog = mylog(plog)
-#	return myplog
-#===============================================================================
-
-def uuid_log():
-#	uuidlog
-	global uuidLog
-	uuidlog = logging.getLogger('uuidlog')
-	uuidlog.setLevel(logging.DEBUG)
-	lpath = _pathrule('uuidlog')
-	logfile = logging.FileHandler(lpath, "w")
-	logfile.setLevel(logging.DEBUG)
-	fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-	logfile.setFormatter(fmt)
-	uuidlog.addHandler(logfile)
-	uuidLog = mylog(uuidlog)
-
-def heart_log():
-	global heartLog
-	heartlog = logging.getLogger('heartLog')
-	heartlog.setLevel(logging.DEBUG)
-	lpath = _pathrule('heartLog')
-	logfile = logging.FileHandler(lpath, "w")
-	logfile.setLevel(logging.DEBUG)
-	fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-	logfile.setFormatter(fmt)
-	heartlog.addHandler(logfile)
-	display = logging.StreamHandler(stdout)
-	display.setLevel(logging.INFO)
-	heartlog.addHandler(display)  #print to screen
-	lpath = _pathrule('heartlog_error')
-	logfile = logging.FileHandler(lpath, "w")
-	logfile.setLevel(logging.ERROR)
-	logfile.setFormatter(fmt)
-	heartlog.addHandler(logfile)
-	heartLog = mylog(heartlog)
+if LOG == None:
+	run_log()

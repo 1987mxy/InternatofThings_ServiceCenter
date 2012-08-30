@@ -3,7 +3,7 @@ from struct import pack, unpack, calcsize
 
 from re import findall
 	
-class _Packager():
+class Package():
 	'''
 	数据包管理者(单例模式)，管理、生成和解析所有数据包
 	'''
@@ -21,12 +21,11 @@ class _Packager():
 		
 	@staticmethod
 	def instance(db, config):
-		if _Packager.__me == None:
-			_Packager.__me = _Packager()
-			_Packager.__me.setDB( db )
-			_Packager.__me.config( config )
-		else:
-			return _Packager.__me
+		if Package.__me == None:
+			Package.__me = Package()
+			Package.__me.setDB( db )
+			Package.__me.config( config )
+		return Package.__me
 
 	def setDB(self, db):
 		self.__db = db
@@ -37,8 +36,8 @@ class _Packager():
 		self.__headerStruct = config.headerStruct
 		self.__headerSize = calcsize( self.__headerStruct )
 
-	def setEncipherer(self, type, encipherer):
-		self.__encipherer[ type ] = encipherer
+	def setEncipherer(self, encrypt, encipherer):
+		self.__encipherer[ encrypt ] = encipherer
 
 	def genHeader(self, bodySize, code, pid):
 		return pack( self.__headerStruct, bodySize + self.__headerSize - 2, 
@@ -84,15 +83,6 @@ class _Packager():
 		groupCount = len( packBody ) / calcsize( struct )
 		data = unpack( '<%s' % ( struct * groupCount ) )
 		return data
-#		structLabel = str.split( ',', packInfo['StructLabel'] )
-#		structLabelCount = len( structLabel )
-#		packageData = []
-#		for i in range( groupCount ):
-#			thePackageData = {}
-#			for j in range( structLabelCount ):
-#				thePackageData[ structLabel[ j ] ] = data[ structLabelCount * i + j ]
-#			packageData.append( thePackageData )
-#		return packageData
 	
 	def setPackage(self, packageInfo):
 		for field, value in packageInfo:
@@ -136,8 +126,3 @@ class _Packager():
 	def existsReply(self, name):
 		where = 'Name="%s"'%name
 		return self.__db.selectOne( self.__table, where )['ExistReply'] == 0b1
-
-from sys import modules
-from lib.DB import Database
-from lib.Config import srvCenterConf
-modules[__name__] = _Packager.instance( Database, srvCenterConf )

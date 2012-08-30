@@ -4,13 +4,13 @@ Created on 2012-8-22
 
 @author: XPMUser
 '''
-
 import socket, threading
+
 from lib.Log import LOG
 from lib.Config import RUN, srvCenterConf
 from lib.Service import InnerService, OuterService
 
-class _Listener(object):
+class Listen(object):
 	'''
 	聆听者，聆听网络socket连接
 	'''
@@ -20,18 +20,17 @@ class _Listener(object):
 		'''
 		构造函数
 		'''
-		self.__inner
-		self.__outer
-		self.__innerPort
-		self.__outerPort
+		self.__inner = None
+		self.__outer = None
+		self.__innerPort = None
+		self.__outerPort = None
 		
 	@staticmethod
-	def instance(config):
-		if _Listener.__me == None:
-			_Listener.__me = _Listener()
-			_Listener.__me.config( config )
-		else:
-			return _Listener.__me
+	def instance(config=None):
+		if Listen.__me == None:
+			Listen.__me = Listen()
+			Listen.__me.config( config )
+		return Listen.__me
 		
 	def config(self, config):
 		self.__innerPort = config.innerPort
@@ -47,6 +46,7 @@ class _Listener(object):
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__innerPort ) )
 		sock.listen(100)
+		LOG.info('Inner service listening...')
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Inner service connected...'%addr)
@@ -59,6 +59,7 @@ class _Listener(object):
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__outerPort ) )
 		sock.listen(100)
+		LOG.info('Outer service listening...')
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Outer service connected...'%addr)
@@ -66,6 +67,3 @@ class _Listener(object):
 			outer.config( srvCenterConf )
 			outer.running()
 		sock.close()
-
-from sys import modules
-modules[__name__] = _Listener.instance( srvCenterConf )

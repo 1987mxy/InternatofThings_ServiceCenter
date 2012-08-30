@@ -5,18 +5,17 @@ Created on 2012-8-23
 @author: XPMUser
 '''
 import socket
-import threading.Thread
+import threading
 
 from time import time
 from os import getpid
 from struct import pack, unpack
 
+import ICMP
 from lib import Packager
-from lib.TerminalManager import ICMP
-from lib.Service.OuterService import OuterService
 from lib.Config import NETMARK, NETWORKADDR
 
-class _TerminalManager(object):
+class TerminalManage(object):
 	'''
 	终端管理者(单例模式)，管理所有终端
 	'''
@@ -26,7 +25,7 @@ class _TerminalManager(object):
 		'''
 		Constructor
 		'''
-		self.__db = None
+		self.__db = db
 		self.__table = 'terminal'
 
 		self.__status = {}
@@ -37,11 +36,9 @@ class _TerminalManager(object):
 	
 	@staticmethod
 	def instance(db):
-		if _TerminalManager.__me == None:
-			_TerminalManager.__me = _TerminalManager()
-			_TerminalManager.__me.setDB( db )
-		else:
-			return _TerminalManager.__me
+		if TerminalManage.__me == None:
+			TerminalManage.__me = TerminalManage( db )
+		return TerminalManage.__me
 	
 	def setDB(self, db):
 		self.__db = db
@@ -144,7 +141,3 @@ class _TerminalManager(object):
 			return self.__status.values()
 		else:
 			return self.__status.values()[ index ]
-		
-from sys import modules
-from lib.DB import Database
-modules[__name__] = _TerminalManager.instance( Database )

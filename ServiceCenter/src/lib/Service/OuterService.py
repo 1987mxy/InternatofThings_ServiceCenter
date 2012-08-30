@@ -4,6 +4,7 @@ Created on 2012-8-14
 
 @author: Moxiaoyong
 '''
+import threading
 
 from struct import unpack
 from time import sleep
@@ -11,17 +12,16 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from binascii import a2b_hex
 from re import sub
 
-import threading
+import Service
 
 from lib.Log import LOG
 from lib.Config import BROADCASTADDR
-from lib.TerminalManager import TerminalManager
-from lib.Service import Service
+from lib.TerminalManage import TerminalManager
 from lib.Securer import MyRsa, MyDes, MyKey
 
-class OuterService(Service):
+class OuterService(Service.Service):
 	'''
-	classdocs
+	外部服务器，面向Internet的手机控制端
 	'''
 	
 	def __init__(self, socket, address):

@@ -6,6 +6,7 @@ Created on 2012-8-21
 '''
 
 from lib import Listener
+from lib.Config import srvCenterConf
 
 if __name__ == '__main__':
-	Listener.running()
+	Listener.instance(srvCenterConf).running()

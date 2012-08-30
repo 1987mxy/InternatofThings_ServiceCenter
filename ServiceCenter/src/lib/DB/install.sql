@@ -1,4 +1,4 @@
-﻿Create TABLE MAIN.[DataPackage](
+Create TABLE [DataPackage](
 	[PackageID] integer PRIMARY KEY UNIQUE NOT NULL COLLATE NOCASE
 	,[Name] varchar(64) UNIQUE NOT NULL COLLATE RTRIM
 	,[Code] binary(16) UNIQUE NOT NULL COLLATE BINARY
@@ -17,7 +17,7 @@ INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, 
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'TerminalStatus', 7, 'B', 'terminalStatus', 1, 'des', '终端状态' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'QueryStatus', 8, '', 'queryStatus', 1, 'none', '询问状态' );
 
-Create TABLE MAIN.[Terminal](
+Create TABLE [Terminal](
 	[TerminalID] integer PRIMARY KEY UNIQUE NOT NULL COLLATE NOCASE
 	,[Name] varchar(32) COLLATE RTRIM
 	,[IPv6] varchar(39) UNIQUE COLLATE RTRIM

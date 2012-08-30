@@ -5,7 +5,7 @@ Created on 2012-8-19
 @author: XPMUser
 '''
 
-class _Database(object):
+class Database(object):
 	'''
 	数据库类，用来操作“数据包表”和“终端表”
 	'''
@@ -14,29 +14,27 @@ class _Database(object):
 	def __init__(self):
 		import sqlite3
 		import os.path
-		if os.path.isfile( 'Data.dat' ):
-			self.__db = sqlite3.connect('Data.dat')
+		if os.path.isfile( './lib/DB/Data.dat' ):
+			self.__db = sqlite3.connect('./lib/DB/Data.dat')
 		else:
-			self.__db = sqlite3.connect('Data.dat')
+			self.__db = sqlite3.connect('./lib/DB/Data.dat')
 			self.__install()
 		
 	@staticmethod
 	def instance():
-		if _Database.__me == None:
-			_Database.__me = _Database()
-		else:
-			return _Database.__me
-		pass
+		if Database.__me == None:
+			Database.__me = Database()
+		return Database.__me
 		
 	def __install(self):
-		sql_file = open( 'install.sql', 'rb' )
+		sql_file = open( './lib/DB/install.sql', 'rb' )
 		sql = sql_file.read()
 		sql_file.close()
 		self.__db.executescript( sql )
 		
 	def backup(self):
 		self.delete( 'terminal' )
-		sql_file = open( 'install.sql', 'wb' )
+		sql_file = open( './lib/DB/install.sql', 'wb' )
 		for sql_line in self.__db.iterdump():
 			sql_file.write( sql_line )
 		sql_file.close()
@@ -79,6 +77,3 @@ class _Database(object):
 	def query(self, sql):
 		cur = self.__db.execute( sql )
 		return cur
-	
-from sys import modules
-modules[__name__] = _Database.instance()

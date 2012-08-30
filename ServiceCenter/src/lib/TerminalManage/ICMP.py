@@ -78,7 +78,6 @@
     $Author: $
 '''
 
-
 import os, socket, struct, select, time
 
 # From /usr/include/linux/icmp.h; your milage may vary.
