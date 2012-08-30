@@ -4,6 +4,9 @@ from struct import pack, unpack, calcsize
 from re import findall
 	
 class _Packager():
+	'''
+	数据包管理者(单例模式)，管理、生成和解析所有数据包
+	'''
 	__me = None
 	
 	def __init__(self):
@@ -47,10 +50,10 @@ class _Packager():
 		return unpack( self.__headerStruct, header )
 
 	def genPackage(self, name, pid, data=[]):
-		packDetail = self.nameFindPackage( name )
-		if packDetail['Struct'] == '':
+		packInfo = self.nameFindPackage( name )
+		if packInfo['Struct'] == '':
 			return ''
-		struct = packDetail['Struct']
+		struct = packInfo['Struct']
 		structCount = findall( '\d+[xcbB?hHiIlLqQfdspP]', struct ).__len__()
 		groupCount = len( data ) / structCount
 		if len( data ) % structCount != 0 or ( struct[-1] in ['s', 'p'] and groupCount != 1 ):
@@ -60,28 +63,28 @@ class _Packager():
 			struct = '%s%d%s'%( struct[:-1], len( data[-1] ), struct[-1] )
 		packBody = pack( '<%s' % ( struct * groupCount ), *data )
 		#加密
-		if packDetail['Encrypt'] in self.__encipherer.keys():
-			packBody = self.__encipherer[ packDetail['Encrypt'] ]( 'encrypt', packBody )
+		if packInfo['Encrypt'] in self.__encipherer.keys():
+			packBody = self.__encipherer[ packInfo['Encrypt'] ]( 'encrypt', packBody )
 		bodySize = len( packBody )
 		
-		return '%s%s' % ( self.genHeader( bodySize, packDetail['Struct'], pid ), 
+		return '%s%s' % ( self.genHeader( bodySize, packInfo['Struct'], pid ), 
 							packBody )
 		
 	def parsePackage(self, code, packBody):
-		packDetail = self.codeFindPackage( code )
+		packInfo = self.codeFindPackage( code )
 		
 		#解密
-		if packDetail['Encrypt'] in self.__encipherer.keys():
-			packBody = self.__encipherer[ packDetail['Encrypt'] ]( 'decrypt', packBody )
+		if packInfo['Encrypt'] in self.__encipherer.keys():
+			packBody = self.__encipherer[ packInfo['Encrypt'] ]( 'decrypt', packBody )
 		
-		struct = packDetail['Struct']
+		struct = packInfo['Struct']
 		if struct[-1] in ['s', 'p']:
 			surplusLen = len( packBody ) - calcsize( struct[:-1] )
 			struct = '%s%d%s' % ( struct[:-1], surplusLen, struct[-1] )
 		groupCount = len( packBody ) / calcsize( struct )
 		data = unpack( '<%s' % ( struct * groupCount ) )
 		return data
-#		structLabel = str.split( ',', packDetail['StructLabel'] )
+#		structLabel = str.split( ',', packInfo['StructLabel'] )
 #		structLabelCount = len( structLabel )
 #		packageData = []
 #		for i in range( groupCount ):
@@ -136,5 +139,5 @@ class _Packager():
 
 from sys import modules
 from lib.DB import Database
-from lib import Config
-modules[__name__] = _Packager.instance( Database, Config.srvCenterConf )
+from lib.Config import srvCenterConf
+modules[__name__] = _Packager.instance( Database, srvCenterConf )

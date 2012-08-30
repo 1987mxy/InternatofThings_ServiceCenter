@@ -1,3 +1,4 @@
+#coding=UTF-8
 '''
 Created on 2012-8-10
 
@@ -10,7 +11,7 @@ from lib import Config
 
 class ServiceCenter(object):
 	'''
-	
+	服务中心
 	'''
 	def __init__(self):
 		'''

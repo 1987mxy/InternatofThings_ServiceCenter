@@ -15,13 +15,14 @@ INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, 
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID', 1, 'des','远程唤醒' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'TerminalInfo', 6, 's', 'terminalInfo', 1, 'des', '终端信息' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'TerminalStatus', 7, 'B', 'terminalStatus', 1, 'des', '终端状态' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'QueryStatus', 8, '', 'queryStatus', 1, 'none', '询问状态' );
 
 Create TABLE MAIN.[Terminal](
 	[TerminalID] integer PRIMARY KEY UNIQUE NOT NULL COLLATE NOCASE
 	,[Name] varchar(32) COLLATE RTRIM
 	,[IPv6] varchar(39) UNIQUE COLLATE RTRIM
 	,[IPv4] varchar(15) UNIQUE COLLATE RTRIM
-	,[Mac] varchar(17) UNIQUE NOT NULL COLLATE RTRIM
+	,[Mac] varchar(17) UNIQUE COLLATE RTRIM
 	,[Type] varchar(16) NOT NULL COLLATE RTRIM
 	,[LastActive] integer COLLATE NOCASE
 );

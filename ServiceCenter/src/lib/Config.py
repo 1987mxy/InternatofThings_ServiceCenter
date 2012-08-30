@@ -1,8 +1,12 @@
+#coding=UTF-8
 '''
 Created on 2012-8-10
 
 @author: Moxiaoyong
 '''
+
+from lib.Tools import getIP, getNetmark, getBroadcostAddr, getNetworkAddr
+
 class Config(object):
 	'''
 	配置
@@ -23,6 +27,19 @@ srvCenterConf.magicCode = 0xDCBA
 srvCenterConf.heartCode = 0x0F0F
 srvCenterConf.headerStruct = '<HHHH'
 srvCenterConf.timeout = 0
+
+
+#===============================================================================
+# network
+#===============================================================================
+
+IP = getIP()
+
+NETMARK = getNetmark()
+
+BROADCASTADDR = getBroadcostAddr()
+
+NETWORKADDR = getNetworkAddr()
 
 #===============================================================================
 # log

@@ -1,5 +1,5 @@
 eclipse.preferences.version=1
-encoding//src/lib/Log.py=gbk
+encoding//src/lib/Log.py=UTF-8
 encoding//src/lib/Packager.py=UTF-8
 encoding//src/lib/Service/OuterService.py=UTF-8
-encoding//src/lib/Tools.py=gbk
+encoding//src/lib/Tools.py=UTF-8

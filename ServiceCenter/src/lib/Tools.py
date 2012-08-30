@@ -1,48 +1,22 @@
-#coding=gbk
+#coding=UTF-8
+from socket import gethostname, gethostbyname, inet_aton, inet_ntoa
+import platform
+
 from os import popen
-from time import sleep
-from re import split, findall, M
-import socket
-import platform.system
+from struct import unpack, pack
 
-from lib.Log import LOG
-		
-#def killProcess(processName):
-#	tasklist = popen('tasklist /FI "IMAGENAME eq %s"'%processName).readlines()
-#	result = ''
-#	if tasklist:
-#		for line in tasklist[3:]:
-#			pid = split('\s+', line, 2)[1]
-#			result = runCMD('killprocess.exe %s' % pid)
-#			if processName in popen('tasklist /FI "IMAGENAME eq %s"'%processName).read():
-#				LOG.error('kill process fail : %s'%result)
-#			else:
-#				result = '关闭%s进程成功\n'%processName
-#	return result
-
-def killProcess(processName):
-	i = 0
-	while processName.lower() in popen('tasklist /FI "IMAGENAME eq %s"'%processName).read().lower():
-		popen('start /B taskkill /F /IM %s /T'%processName)
-		if i>=5:
-			LOG.error('关闭%s进程失败\n'%processName)
-		else:
-			i+=1
-			sleep(1)
-	if i>0:
-		return '关闭%s进程成功\n'%processName
-	else:
-		return ''
-	
+#鑾峰彇鏈満IP鍦板潃
 def getIP():
-	host = socket.gethostname()
-	return socket.gethostbyname( host )
+	host = gethostname()
+	return gethostbyname( host )
 
-def getNermark():
-	netmarkPool = ['128.0.0.0','192.0.0.0','224.0.0.0','240.0.0.0','248.0.0.0','252.0.0.0','254.0.0.0','255.0.0.0',
-					'255.128.0.0','255.192.0.0','255.224.0.0','255.240.0.0','255.248.0.0','255.252.0.0','255.254.0.0','255.255.0.0',
-					'255.255.128.0','255.255.192.0','255.255.224.0','255.255.240.0','255.255.248.0','255.255.252.0','255.255.254.0','255.255.255.0',
-					'255.255.255.128','255.255.255.192','255.255.255.224','255.255.255.240','255.255.255.248','255.255.255.252','255.255.255.254']
+#鑾峰彇鏈満瀛愮綉鎺╃爜
+def getNetmark():
+	netmarkPool = [	'255.255.255.0','255.255.0.0','255.0.0.0',
+					'255.255.255.254','255.255.255.252','255.255.255.248','255.255.255.240','255.255.255.224','255.255.255.192','255.255.255.128',
+					'255.255.254.0','255.255.252.0','255.255.248.0','255.255.240.0','255.255.224.0','255.255.192.0','255.255.128.0',
+					'255.254.0.0','255.252.0.0','255.248.0.0','255.240.0.0','255.224.0.0','255.192.0.0','255.128.0.0',
+					'254.0.0.0','252.0.0.0','248.0.0.0','240.0.0.0','224.0.0.0','192.0.0.0','128.0.0.0' ]
 	systemName = platform.system()
 	if systemName == 'Windows':
 		ipCommand = 'ipconfig'
@@ -51,6 +25,33 @@ def getNermark():
 	ipInfo = popen( ipCommand ).read()
 	
 	for theNetmark in netmarkPool:
-		netmark = findall( theNetmark, ipInfo, M )
-		if netmark:
-			return netmark.pop()
+		if theNetmark in ipInfo:
+			return theNetmark
+		
+#鑾峰彇鏈綉娈靛箍鎾湴鍧�
+def getBroadcostAddr():
+	ip = getIP()
+	netmark = getNetmark()
+	ipBit = unpack( 'L', inet_aton( ip ) )[0]
+	netmarkBit = unpack( 'L', inet_aton( netmark ) )[0]
+	
+	netAddrBit = ipBit & netmarkBit
+	ipCount = netmarkBit ^ 0xFFFFFFFF
+	
+	return inet_ntoa( pack( 'L', netAddrBit + ipCount ) )
+
+#鑾峰彇鏈綉娈电綉缁滃湴鍧�
+def getNetworkAddr():
+	ip = getIP()
+	netmark = getNetmark()
+	ipBit = unpack( 'L', inet_aton( ip ) )[0]
+	netmarkBit = unpack( 'L', inet_aton( netmark ) )[0]
+	
+	return inet_ntoa( pack( 'L', ipBit & netmarkBit ) )
+
+#test case
+if __name__=='__main__':
+	print getIP()
+	print getNetmark()
+	print getNetworkAddr()
+	print getBroadcostAddr()

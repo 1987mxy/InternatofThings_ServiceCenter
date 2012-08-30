@@ -1,3 +1,4 @@
+#coding=UTF-8
 '''
 Created on 2012-8-22
 
@@ -6,13 +7,14 @@ Created on 2012-8-22
 
 import socket, threading
 from lib.Log import LOG
-from lib.Config import RUN
+from lib.Config import RUN, srvCenterConf
 from lib.Service import InnerService, OuterService
 
-class Listener(object):
+class _Listener(object):
 	'''
-	classdocs
+	聆听者，聆听网络socket连接
 	'''
+	__me = None
 
 	def __init__(self):
 		'''
@@ -22,6 +24,14 @@ class Listener(object):
 		self.__outer
 		self.__innerPort
 		self.__outerPort
+		
+	@staticmethod
+	def instance(config):
+		if _Listener.__me == None:
+			_Listener.__me = _Listener()
+			_Listener.__me.config( config )
+		else:
+			return _Listener.__me
 		
 	def config(self, config):
 		self.__innerPort = config.innerPort
@@ -34,27 +44,28 @@ class Listener(object):
 		self.__outer.start()
 		
 	def __innerListener(self):
-		global RUN
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__innerPort ) )
 		sock.listen(100)
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Inner service connected...'%addr)
-			inner = InnerService(sockclient, addr)
+			inner = InnerService.InnerService(sockclient, addr[0])
+			inner.config( srvCenterConf )
 			inner.running()
 		sock.close()
 	
 	def __outerListener(self):
-		global RUN
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__outerPort ) )
 		sock.listen(100)
 		while RUN:
 			sockclient, addr = sock.accept()
 			LOG.info('%s:%s Outer service connected...'%addr)
-			outer = OuterService(sockclient, addr)
+			outer = OuterService.OuterService(sockclient, addr[0])
+			outer.config( srvCenterConf )
 			outer.running()
 		sock.close()
-		
-		
+
+from sys import modules
+modules[__name__] = _Listener.instance( srvCenterConf )

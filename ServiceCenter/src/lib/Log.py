@@ -1,10 +1,10 @@
-#coding=gbk
+#coding=UTF-8
 
 import logging
 from sys import stdout
 from os import path,mkdir
 
-from lib import MyConfig
+from lib import Config
 
 LOG = None
 uuidLog = None
@@ -21,60 +21,60 @@ class mylog(object):
 		return ''.join(hexlist)
 	
 	def critical(self, string, argument = None):   #high
-		if  MyConfig.Status == 'release':
+		if  Config.Status == 'release':
 			if argument:
 				self.logger.critical('%s%s'%(string, argument.__len__()))
 			else:
 				self.logger.critical(string)
-		elif  MyConfig.Status == 'debug':
+		elif  Config.Status == 'debug':
 			if argument:
 				self.logger.critical('%s%s'%(string, self.formatHex(argument)))
 			else:
 				self.logger.critical(string)
 	
 	def error(self, string, argument = None):
-		if MyConfig.Status == 'release':
+		if Config.Status == 'release':
 			if argument:
 				self.logger.error('%s%s'%(string, argument.__len__()))
 			else:
 				self.logger.error(string)
-		elif MyConfig.Status == 'debug':
+		elif Config.Status == 'debug':
 			if argument:
 				self.logger.error('%s%s'%(string, self.formatHex(argument)))
 			else:
 				self.logger.error(string)
 
 	def warning(self, string, argument = None):
-		if MyConfig.Status == 'release':
+		if Config.Status == 'release':
 			if argument:
 				self.logger.warning('%s%s'%(string, argument.__len__()))
 			else:
 				self.logger.warning(string)
-		elif MyConfig.Status == 'debug':
+		elif Config.Status == 'debug':
 			if argument:
 				self.logger.warning('%s%s'%(string, self.formatHex(argument)))
 			else:
 				self.logger.warning(string)
 
 	def info(self, string, argument = None):
-		if MyConfig.Status == 'release':
+		if Config.Status == 'release':
 			if argument:
 				self.logger.info('%s%s'%(string, argument.__len__()))
 			else:
 				self.logger.info(string)
-		elif MyConfig.Status == 'debug':
+		elif Config.Status == 'debug':
 			if argument:
 				self.logger.info('%s%s'%(string, self.formatHex(argument)))
 			else:
 				self.logger.info(string)
 	
 	def debug(self, string, argument = None):  #low
-		if MyConfig.Status == 'release':
+		if Config.Status == 'release':
 			if argument:
 				self.logger.debug('%s%s'%(string, argument.__len__()))
 			else:
 				self.logger.debug(string)
-		elif MyConfig.Status == 'debug':
+		elif Config.Status == 'debug':
 			if argument:
 				self.logger.debug('%s%s'%(string, self.formatHex(argument)))
 			else:
@@ -113,7 +113,7 @@ def run_log():
 	fmt = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 	logfile.setFormatter(fmt)
 	rlog.addHandler(logfile)
-	if MyConfig.PRINT_RUNLOG and MyConfig.PRINT_LOG:
+	if Config.PRINT_RUNLOG and Config.PRINT_LOG:
 		display = logging.StreamHandler(stdout)
 		display.setLevel(logging.INFO)
 		rlog.addHandler(display)  #print to screen

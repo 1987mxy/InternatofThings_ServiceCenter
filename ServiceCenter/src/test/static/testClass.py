@@ -8,9 +8,13 @@ class ParentClass(object):
 	_test = 5
 
 	def __init__(self):
+		ParentClass._test = 20
 		self._test1 = 10
 	
 class ChildClass(ParentClass):
+		
+	def __init__(self):
+		super( ChildClass, self ).__init__()
 		
 	def run(self):
 		print self._test1
