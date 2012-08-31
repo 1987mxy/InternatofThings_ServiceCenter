@@ -6,9 +6,9 @@ Created on 2012-8-22
 '''
 import socket, threading
 
-from lib.Log import LOG
-from lib.Config import RUN, srvCenterConf
-from lib.Service import InnerService, OuterService
+from Global import Logger, Listener
+from Config import RUN, srvCenterConf
+from Service import InnerService, OuterService
 
 class Listen(object):
 	'''
@@ -20,16 +20,19 @@ class Listen(object):
 		'''
 		构造函数
 		'''
-		self.__inner = None
-		self.__outer = None
+		self.__config = None
+		
+		self.__innerThread = None
+		self.__outerThread = None
 		self.__innerPort = None
 		self.__outerPort = None
 		
+		self.config( srvCenterConf )
+		
 	@staticmethod
-	def instance(config=None):
+	def instance():
 		if Listen.__me == None:
 			Listen.__me = Listen()
-			Listen.__me.config( config )
 		return Listen.__me
 		
 	def config(self, config):
@@ -37,19 +40,19 @@ class Listen(object):
 		self.__outerPort = config.outerPort
 		
 	def running(self):
-		self.__inner = threading.Thread(target=self.__innerListener)
-		self.__outer = threading.Thread(target=self.__outerListener)
-		self.__inner.start()
-		self.__outer.start()
+		self.__innerThread = threading.Thread(target=self.__innerListener)
+		self.__outerThread = threading.Thread(target=self.__outerListener)
+		self.__innerThread.start()
+		self.__outerThread.start()
 		
 	def __innerListener(self):
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__innerPort ) )
 		sock.listen(100)
-		LOG.info('Inner service listening...')
+		Logger.info('Inner service listening...')
 		while RUN:
 			sockclient, addr = sock.accept()
-			LOG.info('%s:%s Inner service connected...'%addr)
+			Logger.info('%s:%s Inner service connected...'%addr)
 			inner = InnerService.InnerService(sockclient, addr[0])
 			inner.config( srvCenterConf )
 			inner.running()
@@ -59,11 +62,13 @@ class Listen(object):
 		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		sock.bind( ( '', self.__outerPort ) )
 		sock.listen(100)
-		LOG.info('Outer service listening...')
+		Logger.info('Outer service listening...')
 		while RUN:
 			sockclient, addr = sock.accept()
-			LOG.info('%s:%s Outer service connected...'%addr)
+			Logger.info('%s:%s Outer service connected...'%addr)
 			outer = OuterService.OuterService(sockclient, addr[0])
-			outer.config( srvCenterConf )
+			outer.config( self.__config )
 			outer.running()
 		sock.close()
+		
+Listener = Listen.instance()

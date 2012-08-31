@@ -7,9 +7,9 @@ Created on 2012-8-14
 
 import threading
 
-import Service
+from Service import Service
 
-class InnerService(Service.Service):
+class InnerService(Service):
 	'''
 	内部服务器，面向局域网的各种终端
 	'''

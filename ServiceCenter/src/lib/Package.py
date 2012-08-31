@@ -2,6 +2,9 @@
 from struct import pack, unpack, calcsize
 
 from re import findall
+
+from Global import Packager, DB
+from Config import srvCenterConf
 	
 class Package():
 	'''
@@ -16,15 +19,18 @@ class Package():
 		self.__magicCode = None
 		self.__heartCode = None
 		self.__headerStruct = None
+		self.__headerSize = None
 
 		self.__encipherer = {}
 		
+		self.setDB( DB )
+		self.config( srvCenterConf )
+		
+		
 	@staticmethod
-	def instance(db, config):
+	def instance():
 		if Package.__me == None:
 			Package.__me = Package()
-			Package.__me.setDB( db )
-			Package.__me.config( config )
 		return Package.__me
 
 	def setDB(self, db):
@@ -126,3 +132,5 @@ class Package():
 	def existsReply(self, name):
 		where = 'Name="%s"'%name
 		return self.__db.selectOne( self.__table, where )['ExistReply'] == 0b1
+	
+Packager = Package.instance()

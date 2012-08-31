@@ -12,7 +12,7 @@ from os import getpid
 from struct import pack, unpack
 
 import ICMP
-from lib import Packager
+from lib.Global import Packager, DB, TerminalManager
 from lib.Config import NETMARK, NETWORKADDR
 
 class TerminalManage(object):
@@ -21,11 +21,11 @@ class TerminalManage(object):
 	'''
 	__me = None
 
-	def __init__(self, db):
+	def __init__(self):
 		'''
 		Constructor
 		'''
-		self.__db = db
+		self.__db = None
 		self.__table = 'terminal'
 
 		self.__status = {}
@@ -33,11 +33,13 @@ class TerminalManage(object):
 		
 		self.__switch = True
 		self.__viewerThread = None
+		
+		self.setDB( DB )
 	
 	@staticmethod
-	def instance(db):
+	def instance():
 		if TerminalManage.__me == None:
-			TerminalManage.__me = TerminalManage( db )
+			TerminalManage.__me = TerminalManage()
 		return TerminalManage.__me
 	
 	def setDB(self, db):
@@ -141,3 +143,5 @@ class TerminalManage(object):
 			return self.__status.values()
 		else:
 			return self.__status.values()[ index ]
+		
+TerminalManager = TerminalManage.instance()

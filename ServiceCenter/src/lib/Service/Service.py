@@ -7,11 +7,11 @@ Created on 2012-8-14
 
 import threading
 from time import sleep
-
 from traceback import format_exc
 from struct import unpack, calcsize
 
-from lib.Log import LOG
+from lib.Global import Logger
+from lib.Config import srvCenterConf
 
 class Service(object):
 	'''
@@ -24,7 +24,7 @@ class Service(object):
 		服务抽象类
 		'''
 		if self.class__ is Service:	#抽象类不能实例化
-			LOG.error('Net class dose not instantiation')
+			Logger.error('Net class dose not instantiation')
 			raise 'Net class dose not instantiation'
 		
 		Service.server[ address ] = self
@@ -49,6 +49,8 @@ class Service(object):
 		
 		self.packager = None
 		
+		self.config( srvCenterConf )
+		
 	def config(self, config):
 		self.magicCode = config.magicCode
 		self.heartCode = config.heartCode
@@ -65,25 +67,25 @@ class Service(object):
 		self.mainThread = threading.Thread( target = self.main )
 
 	def shutdown(self):
-		LOG.error('%s shutdown !'%self.address)
+		Logger.error('%s shutdown !'%self.address)
 		self.switch = False
 
 	def receive(self):
 		try:
 			sourceStream = ''
 			while self.switch:
-				LOG.debug( '%s receiving...' % self.address )
+				Logger.debug( '%s receiving...' % self.address )
 				recvStream = self.sock.recv( 1000 )
-				LOG.debug( 'receive raw stream from %s : ' % self.address, recvStream )
+				Logger.debug( 'receive raw stream from %s : ' % self.address, recvStream )
 				if recvStream:
 					self.isAlive = True
 					sourceStream = self.parseHeader( '%s%s' % ( sourceStream, recvStream ) )
 				else:
-					LOG.info( '%s disconnect...' % self.address )
+					Logger.info( '%s disconnect...' % self.address )
 					self.shutdown()
 		except:
-			LOG.error( 'receive error : %s' % format_exc() )
-			LOG.error('%s receive error : %s'%( self.address, 
+			Logger.error( 'receive error : %s' % format_exc() )
+			Logger.error('%s receive error : %s'%( self.address, 
 											    format_exc() ) )
 			self.shutdown()
 
@@ -91,7 +93,7 @@ class Service(object):
 		if len(stream) >= self.headerSize:
 			head = unpack(self.headStruct, stream[ : self.headerSize])
 			if head[1] != self.magicCode:
-				LOG.error('receive invalid package from %s : '%self.address, stream)
+				Logger.error('receive invalid package from %s : '%self.address, stream)
 				self.shutdown()
 			if head[0] + 2 <= len(stream):
 				mStream = stream[self.headerSize : head[0] + 2]
@@ -107,11 +109,11 @@ class Service(object):
 			self.isAlive = False
 			sleep( self.timeout )
 		if self.switch:
-			LOG.error('%s heart time out !'%self.address)
+			Logger.error('%s heart time out !'%self.address)
 			self.shutdown()
 			
 	def send(self, stream):
-		LOG.debug( '%s send raw stream : ' % self.address, stream )
+		Logger.debug( '%s send raw stream : ' % self.address, stream )
 		self.sock.sendall( stream )
 	
 	@staticmethod

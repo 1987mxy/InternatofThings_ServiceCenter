@@ -5,7 +5,7 @@ Created on 2012-8-10
 @author: Moxiaoyong
 '''
 
-from lib.Tools import getIP, getNetmark, getBroadcostAddr, getNetworkAddr
+from Tools import getIP, getNetmark, getBroadcostAddr, getNetworkAddr
 
 class Config(object):
 	'''

@@ -12,14 +12,13 @@ from socket import socket, AF_INET, SOCK_DGRAM
 from binascii import a2b_hex
 from re import sub
 
-import Service
+from Service import Service
 
-from lib.Log import LOG
+from lib.Global import Logger, TerminalManager
 from lib.Config import BROADCASTADDR
-from lib.TerminalManage import TerminalManager
 from lib.Securer import MyRsa, MyDes, MyKey
 
-class OuterService(Service.Service):
+class OuterService(Service):
 	'''
 	外部服务器，面向Internet的手机控制端
 	'''
@@ -62,7 +61,7 @@ class OuterService(Service.Service):
 					sleep( self.timeout )
 					self.respSurplusTime -= self.timeout
 				if self.respWaitCount > 0:
-					LOG.error('%s response time out !'%self.address)
+					Logger.error('%s response time out !'%self.address)
 					self.shutdown()
 				else:
 					self.chkCondition.wait()	
@@ -82,10 +81,10 @@ class OuterService(Service.Service):
 				if len( self.packQueue ) <= 0:
 					self.commCondition.wait()
 				( pid, code, package ) = self.packQueue.pop()
-				LOG.info('received head from %s : [%d, %2x]' % ( self.address, 
+				Logger.info('received head from %s : [%d, %2x]' % ( self.address, 
 																	pid,
 																	code ) )
-				LOG.debug('received package from %s : '%self.address, package)
+				Logger.debug('received package from %s : '%self.address, package)
 				
 				
 				#解析包
