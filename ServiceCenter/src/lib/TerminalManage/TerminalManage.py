@@ -6,14 +6,15 @@ Created on 2012-8-23
 '''
 import socket
 import threading
-
-from time import time
+from time import time, sleep
 from os import getpid
 from struct import pack, unpack
 
 import ICMP
-from lib.Global import Packager, DB, TerminalManager
-from lib.Config import NETMARK, NETWORKADDR
+from lib.Global import Packager, DB, Logger
+from lib.Service.OuterService import OuterService
+from lib.Tools import getMac
+from lib.Config import IP, NETMARK, NETWORKADDR
 
 class TerminalManage(object):
 	'''
@@ -27,6 +28,7 @@ class TerminalManage(object):
 		'''
 		self.__db = None
 		self.__table = 'terminal'
+		self.__fieldList = [ 'TerminalID', 'Name', 'IPv4', 'Mac' ]
 
 		self.__status = {}
 		self.__gapTime = 5
@@ -35,6 +37,10 @@ class TerminalManage(object):
 		self.__viewerThread = None
 		
 		self.setDB( DB )
+
+		for terminal in self.findAllTerminal():
+			terminal[ 'Status' ] = False
+			self.__status[ terminal[ 'IPv4' ] ] = terminal
 	
 	@staticmethod
 	def instance():
@@ -45,42 +51,55 @@ class TerminalManage(object):
 	def setDB(self, db):
 		self.__db = db
 		
+	def running(self):
+		self.__viewerThread = threading.Thread( target = self.viewer )
+		self.__viewerThread.start()
+		
+	def stop(self):
+		self.__switch = False
+		
 	def viewer(self):
 		icmpProtocol = socket.getprotobyname("icmp")
 		mySocket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmpProtocol)
 		my_ID = getpid() & 0xFFFF
 		
-		for terminal in self.findAllTerminal():
-			self.__status[ terminal[ 'IPv4' ] ] = False
+		netmarkBit = unpack( '>L', socket.inet_aton( NETMARK ) )[0]
 		
-		netmarkBit = unpack( 'L', socket.inet_aton( NETMARK ) )[0]
-		
-		netAddrBit = unpack( 'L', socket.inet_aton( NETWORKADDR ) )[0]
+		netAddrBit = unpack( '>L', socket.inet_aton( NETWORKADDR ) )[0]
 		
 		ipCount = netmarkBit ^ 0xFFFFFFFF
 		
 		def changeStatus( delay, destAddr ):
 			if delay:
-				if destAddr in self.__status.keys():
-					if self.__status[ destAddr ] == False:
+				Logger.info( 'Find Terminal %s!'%destAddr )
+				if self.__status.has_key( destAddr ):
+					if self.__status[ destAddr ][ 'Status' ] == False:
 						self.activateTerminal( destAddr )
 				else:
-					host = socket.gethostbyaddr( destAddr )[0]
-					self.setTerminal( ip=destAddr, name=host )
-				self.__status[ destAddr ] = True
+					try:
+						host = socket.gethostbyaddr( destAddr )[0]
+					except socket.herror, e:
+						if e.errno != 11004:
+							raise Exception( 'get host name error!' )
+						host = destAddr
+					mac = getMac( destAddr )
+					self.setTerminal( destAddr, mac, host )
+					self.__status[ destAddr ] = {'Name':host, 'IPv4':destAddr, 'Mac':mac, 'Type':1 }
+				self.__status[ destAddr ][ 'Status' ] = True
 			else:
-				if destAddr in self.__status.keys():
-					self.__status[ destAddr ] = False
+				if self.__status.has_key( destAddr ):
+					self.__status[ destAddr ][ 'Status' ] = False
 		
 		while self.__switch:
 			for existsAddr in self.__status.keys():
+				
 				ICMP.send_one_ping(mySocket, existsAddr, my_ID)
 				delay = ICMP.receive_one_ping(mySocket, my_ID, 2)
 				changeStatus( delay, existsAddr )
 			
 			for i in range( 1, ipCount ):
-				destAddr = socket.inet_ntoa( pack( 'L', netAddrBit + i ) )
-				if destAddr in self.__status.keys():
+				destAddr = socket.inet_ntoa( pack( '>L', netAddrBit + i ) )
+				if destAddr == IP or self.__status.has_key( destAddr ):
 					continue
 				ICMP.send_one_ping(mySocket, destAddr, my_ID)
 				delay = ICMP.receive_one_ping(mySocket, my_ID, 2)
@@ -88,16 +107,9 @@ class TerminalManage(object):
 				
 			queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
 			OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
-			time.sleep( 30 )
+			sleep( 30 )
 
 		mySocket.close()
-	
-	def running(self):
-		self.__viewerThread = threading.Thread( target = self.viewer )
-		self.__viewerThread.start()
-	
-	def stop(self):
-		self.__switch = False
 		
 	def setTerminal(self, ip, mac='', name=''):
 		self.removeTerminal( ip, mac )
@@ -105,43 +117,54 @@ class TerminalManage(object):
 		terminalInfo[ 'Name' ] = name
 		terminalInfo[ 'IPv4' ] = ip
 		terminalInfo[ 'Mac' ] = mac
-		terminalInfo[ 'Type' ] = 1
-		return self.__db.insert( self.__table, terminalInfo )
+		terminalInfo[ 'Type' ] = '1'
+		return self.__db.io( 'insert', [ self.__table, terminalInfo ] )
 		
 	def removeTerminal(self, ip='', mac=''):
 		where = ''
 		if ip:
-			where = 'IPv4="%s" '%ip
+			where = 'IPv4="%s"'%ip
 		if mac:
-			where = ( where and 'OR Mac="%s"'%mac ) or 'Mac="%s"'%mac
-		return self.__db.delete( self.__table, where )
+			where = ( where and '%s OR Mac="%s"'%( where, mac ) ) or 'Mac="%s"'%mac
+		return self.__db.io( 'delete', [ self.__table, where ] )
 
 	def existsTerminal(self, ip, mac):
-		where = 'IPv4="%s" AND Mac="%s"'%( ip, mac )
-		count = self.__db.count( self.__table, where )
+		if self.__status:
+			count = [ terminal for terminal in self.__status.values() if terminal['IPv4'] == ip and terminal['Mac'] == mac ].__len__()
+		else:
+			where = 'IPv4="%s" AND Mac="%s"'%( ip, mac )
+			count = self.__db.io( 'count', [ self.__table, where ] )
 		return count > 0
 
 	def findAllTerminal(self):
-		return self.__db.select( self.__table )
+		if self.__status:
+			return self.__status.values()
+		else:
+			terminalList = []
+			return self.__db.io( 'select', [ self.__table, ','.join( self.__fieldList ) ] )
 	
 	def nameFindTerminal(self, name):
-		where = 'Name="%s"'%name
-		return self.__db.selectOne( self.__table, where )
+		if self.__status:
+			return [ terminal for terminal in self.__status.values() if terminal['Name'] == name ]
+		else:
+			where = 'Name="%s"'%name
+			return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
 
 	def idFindTerminal(self, terminalID):
-		where = 'TerminalID=%s'%terminalID
-		return self.__db.selectOne( self.__table, where )
+		if self.__status:
+			return [ terminal for terminal in self.__status.values() if terminal['TerminalID'] == terminalID ]
+		else:
+			where = 'TerminalID=%s'%terminalID
+			return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
 	
 	def activateTerminal(self, ip):
 		now = int( time() )
 		terminalInfo = { 'LastActive': now }
 		where = 'IPv4="%s"'
-		self.__db.update( self.__table, terminalInfo, where )
+		self.__db.io( 'update', [ self.__table, terminalInfo, where ] )
 		
-	def getStatus(self, index):
-		if index:
-			return self.__status.values()
+	def getStatus(self, index=None):
+		if index == None:
+			return [ terminal['Status'] for terminal in self.__status.values() ]
 		else:
-			return self.__status.values()[ index ]
-		
-TerminalManager = TerminalManage.instance()
+			return self.__status.values()[ index ][ 'Status' ]

@@ -7,7 +7,7 @@
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/ServiceCenter/src</path>
 <path>/ServiceCenter/test</path>
-<path>/ServiceCenter/VirtaulMobile</path>
+<path>/ServiceCenter/VirtualMobile</path>
 </pydev_pathproperty>
 
 </pydev_project>

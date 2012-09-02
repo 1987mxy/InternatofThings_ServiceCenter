@@ -6,8 +6,8 @@ Created on 2012-8-22
 '''
 import socket, threading
 
-from Global import Logger, Listener
-from Config import RUN, srvCenterConf
+from Global import Logger, TerminalManager
+from Config import srvCenterConf
 from Service import InnerService, OuterService
 
 class Listen(object):
@@ -20,12 +20,15 @@ class Listen(object):
 		'''
 		构造函数
 		'''
-		self.__config = None
+		self.__switch = True
 		
 		self.__innerThread = None
 		self.__outerThread = None
 		self.__innerPort = None
 		self.__outerPort = None
+		
+		self.__innerSock = None
+		self.__outerSock = None
 		
 		self.config( srvCenterConf )
 		
@@ -45,30 +48,34 @@ class Listen(object):
 		self.__innerThread.start()
 		self.__outerThread.start()
 		
+	def stop(self):
+		self.__switch = False
+		self.__innerSock.shutdown( socket.SHUT_RDWR )
+		self.__innerSock.close()
+		self.__outerSock.shutdown( socket.SHUT_RDWR )
+		self.__outerSock.close()
+		
 	def __innerListener(self):
-		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-		sock.bind( ( '', self.__innerPort ) )
-		sock.listen(100)
-		Logger.info('Inner service listening...')
-		while RUN:
-			sockclient, addr = sock.accept()
-			Logger.info('%s:%s Inner service connected...'%addr)
-			inner = InnerService.InnerService(sockclient, addr[0])
-			inner.config( srvCenterConf )
+		self.__innerSock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+		self.__innerSock.bind( ( '', self.__innerPort ) )
+		self.__innerSock.listen(100)
+		Logger.info( 'Inner service listening...' )
+		while self.__switch:
+			sockclient, addr = self.__innerSock.accept()
+			Logger.info( '%s:%s Inner service connected...'%addr )
+			inner = InnerService.InnerService( sockclient, addr[0] )
 			inner.running()
-		sock.close()
+		self.__innerSock.close()
 	
 	def __outerListener(self):
-		sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-		sock.bind( ( '', self.__outerPort ) )
-		sock.listen(100)
-		Logger.info('Outer service listening...')
-		while RUN:
-			sockclient, addr = sock.accept()
-			Logger.info('%s:%s Outer service connected...'%addr)
-			outer = OuterService.OuterService(sockclient, addr[0])
-			outer.config( self.__config )
+		self.__outerSock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
+		self.__outerSock.bind( ( '', self.__outerPort ) )
+		self.__outerSock.listen(100)
+		Logger.info( 'Outer service listening...' )
+		while self.__switch:
+			sockclient, addr = self.__outerSock.accept()
+			Logger.info( '%s:%s Outer service connected...'%addr )
+			outer = OuterService.OuterService( sockclient, addr[0] )
+			outer.setTerminalManager( TerminalManager )
 			outer.running()
-		sock.close()
-		
-Listener = Listen.instance()
+		self.__outerSock.close()

@@ -23,7 +23,7 @@ class MyKey(object):
 	def __read(self):
 		self.__now = int( time.time() )
 		
-		keyFile = open('./Key','rb')
+		keyFile = open('./lib/Securer/Key','rb')
 		packTime = keyFile.read(8)
 		keyTime = unpack( '<Q', packTime )
 
@@ -38,4 +38,4 @@ class MyKey(object):
 		
 	def check(self, key):
 		if not self.switch: return True
-		return ( int(key) in self.__read() ) 
+		return ( int(key) in self.__read() )

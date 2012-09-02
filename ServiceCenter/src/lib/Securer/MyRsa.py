@@ -35,4 +35,5 @@ class MyRsa(object):
 			return rsa.decrypt( data, self.__privateKey )
 	
 	def getPubKey(self):
+		print 'gen PubKey: %s'%str(self.__publicKey)
 		return self.__publicKey._save_pkcs1_der()

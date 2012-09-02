@@ -9,8 +9,9 @@ import threading
 from time import sleep
 from traceback import format_exc
 from struct import unpack, calcsize
+from socket import SHUT_RDWR
 
-from lib.Global import Logger
+from lib.Global import Logger, Packager, TerminalManager
 from lib.Config import srvCenterConf
 
 class Service(object):
@@ -23,9 +24,9 @@ class Service(object):
 		'''
 		服务抽象类
 		'''
-		if self.class__ is Service:	#抽象类不能实例化
+		if self.__class__ is Service:	#抽象类不能实例化
 			Logger.error('Net class dose not instantiation')
-			raise 'Net class dose not instantiation'
+			raise Exception( 'Net class dose not instantiation' )
 		
 		Service.server[ address ] = self
 		
@@ -39,6 +40,7 @@ class Service(object):
 
 		self.recvThread = None
 		self.mainThread = None
+		self.mainThreadName = None
 		self.chkThread = None
 		self.commCondition = None
 		
@@ -48,8 +50,11 @@ class Service(object):
 		self.headerSize = None
 		
 		self.packager = None
+		self.terminalManager = None
 		
 		self.config( srvCenterConf )
+		self.setPackager( Packager )
+		self.setTerminalManager( TerminalManager )
 		
 	def config(self, config):
 		self.magicCode = config.magicCode
@@ -61,14 +66,21 @@ class Service(object):
 	def setPackager(self, packager):
 		self.packager = packager
 		
+	def setTerminalManager(self, terminalManager):
+		self.terminalManager = terminalManager
+	
 	def running(self):
 		self.commCondition = threading.Condition()
 		self.recvThread = threading.Thread( target = self.receive )
 		self.mainThread = threading.Thread( target = self.main )
+		self.mainThreadName = self.mainThread.getName()
 
 	def shutdown(self):
 		Logger.error('%s shutdown !'%self.address)
 		self.switch = False
+		self.sock.shutdown( SHUT_RDWR )
+		self.sock.close()
+		del Service.server[ self.address ]
 
 	def receive(self):
 		try:
@@ -80,7 +92,7 @@ class Service(object):
 				if recvStream:
 					self.isAlive = True
 					sourceStream = self.parseHeader( '%s%s' % ( sourceStream, recvStream ) )
-				else:
+				elif self.switch == True:
 					Logger.info( '%s disconnect...' % self.address )
 					self.shutdown()
 		except:
@@ -91,7 +103,7 @@ class Service(object):
 
 	def parseHeader(self, stream):
 		if len(stream) >= self.headerSize:
-			head = unpack(self.headStruct, stream[ : self.headerSize])
+			head = unpack(self.headerStruct, stream[ : self.headerSize])
 			if head[1] != self.magicCode:
 				Logger.error('receive invalid package from %s : '%self.address, stream)
 				self.shutdown()
@@ -99,9 +111,11 @@ class Service(object):
 				mStream = stream[self.headerSize : head[0] + 2]
 				stream = stream[head[0] + 2 : ]
 				if head[2] != self.heartCode:
+					self.commCondition.acquire()
 					self.packQueue.insert(0, [head[3], head[2], mStream])
 					self.commCondition.notify()
-				stream = self.parseHead(stream)
+					self.commCondition.release()
+				stream = self.parseHeader(stream)
 		return stream
 
 	def chkHeart(self):
@@ -117,14 +131,16 @@ class Service(object):
 		self.sock.sendall( stream )
 	
 	@staticmethod
-	def broadcast(self, data, destAddr=''):
+	def broadcast(data, destAddr=''):
 		if destAddr:
-			Service.server[ destAddr ].__packQueue.append( data )
-			Service.server[ destAddr ].__commCondition.notify()
+			Service.server[ destAddr ].commCondition.acquire()
+			Service.server[ destAddr ].packQueue.insert( 0, data )
+			Service.server[ destAddr ].commCondition.notify()
 		else:
 			for srv in Service.server.values():
-				srv.__packQueue.append( data )
-				srv.__commCondition.notify()
+				srv.commCondition.acquire()
+				srv.packQueue.insert( 0, data )
+				srv.commCondition.notify()
 		
 	def main(self, data):
 		pass

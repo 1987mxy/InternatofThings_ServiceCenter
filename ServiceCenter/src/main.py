@@ -8,4 +8,5 @@ Created on 2012-8-21
 from lib import Global
 
 if __name__ == '__main__':
+	Global.TerminalManager.running()
 	Global.Listener.running()

@@ -3,7 +3,7 @@ from struct import pack, unpack, calcsize
 
 from re import findall
 
-from Global import Packager, DB
+from Global import DB
 from Config import srvCenterConf
 	
 class Package():
@@ -15,6 +15,7 @@ class Package():
 	def __init__(self):
 		self.__db = None
 		self.__table = 'datapackage'
+		self.__fieldList = [ 'PackageID', 'Name', 'Code', 'Struct', 'StructLabel', 'ExistReply', 'Encrypt' ]
 		
 		self.__magicCode = None
 		self.__heartCode = None
@@ -42,8 +43,10 @@ class Package():
 		self.__headerStruct = config.headerStruct
 		self.__headerSize = calcsize( self.__headerStruct )
 
-	def setEncipherer(self, encrypt, encipherer):
-		self.__encipherer[ encrypt ] = encipherer
+	def setEncipherer(self, master, encrypt, encipherer):
+		if self.__encipherer.has_key( master ) == False:
+			self.__encipherer[ master ] = {}
+		self.__encipherer[ master ][ encrypt ] = encipherer
 
 	def genHeader(self, bodySize, code, pid):
 		return pack( self.__headerStruct, bodySize + self.__headerSize - 2, 
@@ -54,40 +57,47 @@ class Package():
 	def parseHeader(self, header):
 		return unpack( self.__headerStruct, header )
 
-	def genPackage(self, name, pid, data=[]):
+	def genPackage(self, master, name, pid, data=[]):
 		packInfo = self.nameFindPackage( name )
+		
+		print '='*20
+		print 'pname:%s'%name
+		print packInfo
+		
 		if packInfo['Struct'] == '':
 			return ''
 		struct = packInfo['Struct']
-		structCount = findall( '\d+[xcbB?hHiIlLqQfdspP]', struct ).__len__()
+		structCount = findall( '\d*[xcbB?hHiIlLqQfdspP]', struct ).__len__()
 		groupCount = len( data ) / structCount
+		
 		if len( data ) % structCount != 0 or ( struct[-1] in ['s', 'p'] and groupCount != 1 ):
-			raise 'Package data invalid!'
+			raise Exception( 'Package data invalid!' )
 
 		if struct[-1] in ['s', 'p']:
 			struct = '%s%d%s'%( struct[:-1], len( data[-1] ), struct[-1] )
 		packBody = pack( '<%s' % ( struct * groupCount ), *data )
+		
 		#加密
 		if packInfo['Encrypt'] in self.__encipherer.keys():
-			packBody = self.__encipherer[ packInfo['Encrypt'] ]( 'encrypt', packBody )
-		bodySize = len( packBody )
+			packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'encrypt', packBody )
 		
-		return '%s%s' % ( self.genHeader( bodySize, packInfo['Struct'], pid ), 
+		bodySize = len( packBody )
+		return '%s%s' % ( self.genHeader( bodySize, packInfo['Code'], pid ), 
 							packBody )
 		
-	def parsePackage(self, code, packBody):
+	def parsePackage(self, master, code, packBody):
 		packInfo = self.codeFindPackage( code )
 		
 		#解密
 		if packInfo['Encrypt'] in self.__encipherer.keys():
-			packBody = self.__encipherer[ packInfo['Encrypt'] ]( 'decrypt', packBody )
+			packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'decrypt', packBody )
 		
 		struct = packInfo['Struct']
 		if struct[-1] in ['s', 'p']:
 			surplusLen = len( packBody ) - calcsize( struct[:-1] )
 			struct = '%s%d%s' % ( struct[:-1], surplusLen, struct[-1] )
 		groupCount = len( packBody ) / calcsize( struct )
-		data = unpack( '<%s' % ( struct * groupCount ) )
+		data = unpack( '<%s' % ( struct * groupCount ), packBody )
 		return data
 	
 	def setPackage(self, packageInfo):
@@ -96,11 +106,11 @@ class Package():
 				return False
 		if self.existsPackage( packageInfo[ 'name' ], packageInfo[ 'code' ] ):
 			return False
-		return self.__db.insert( self.__table, packageInfo )
+		return self.__db.io( 'insert', [ self.__table, packageInfo ] )
 	
 	def existsPackage(self, name='', code=''):
 		where = 'Name="%s" OR Code=%s'%( name, code )
-		count = self.__db.count( self.__table, where )
+		count = self.__db.io( 'count', [ self.__table, where ] )
 		return count > 0
 	
 	def removePackage(self, name='', code=''):
@@ -109,28 +119,26 @@ class Package():
 			where = 'Name="%s" '%name
 		if code:
 			where = ( where and 'OR Code=%s'%code ) or 'Code=%s'%code
-		return self.__db.delete( self.__table, where )
+		return self.__db.io( 'delete', [ self.__table, where ] )
 		
 	def modifyPackage(self, packageID, packageInfo):
 		for field, value in packageInfo:
 			if value == '' and field != 'memo':
 				return False
 		where = 'PackageID=%d' % packageID
-		return self.__db.update( self.__table, packageInfo, where )
+		return self.__db.io( 'update', [ self.__table, packageInfo, where ] )
 	
 	def findAllPackages(self):
-		return self.__db.select( self.__table )
+		return self.__db.io( 'select', [ self.__table, ','.join( self.__fieldList ) ] )
 		
 	def codeFindPackage(self, code):
 		where = 'Code=%d'%code
-		return self.__db.selectOne( self.__table, where )
+		return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
 
 	def nameFindPackage(self, name):
 		where = 'Name="%s"'%name
-		return self.__db.selectOne( self.__table, where )
+		return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
 	
 	def existsReply(self, name):
 		where = 'Name="%s"'%name
-		return self.__db.selectOne( self.__table, where )['ExistReply'] == 0b1
-	
-Packager = Package.instance()
+		return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )['ExistReply'] == 0b1
