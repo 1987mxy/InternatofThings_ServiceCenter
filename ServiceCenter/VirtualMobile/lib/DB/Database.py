@@ -32,6 +32,12 @@ class Database(object):
 		self.__dbCondition = threading.Condition()
 		self.__execThread = threading.Thread( target=self.execute )
 		self.__execThread.start()
+		
+	def stop(self):
+		self.__switch = False
+		self.__dbCondition.acquire()
+		self.__dbCondition.notify()
+		self.__dbCondition.release()
 	
 	def io(self, function, argv):
 		self.__dbCondition.acquire()

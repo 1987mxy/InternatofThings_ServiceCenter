@@ -7,6 +7,8 @@ Created on 2012-8-19
 import sqlite3, threading
 import os.path
 
+from time import sleep
+
 class Database(object):
 	'''
 	数据库类，用来操作“数据包表”和“终端表”
@@ -40,7 +42,8 @@ class Database(object):
 		self.__dbCondition.release()
 	
 	def io(self, function, argv):
-		self.__dbCondition.acquire()
+		while not self.__dbCondition.acquire():
+			sleep(0.2)
 		threadID = threading.currentThread().getName()
 		execFlag = '%s %d'%( threadID, self.__execID )
 		self.__dbQueryQueue.insert( 0, [ execFlag, function, argv ] )

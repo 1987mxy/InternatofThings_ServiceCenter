@@ -95,6 +95,7 @@ class OuterService(Service):
 			#发送回应包
 			if packInfo['ExistReply'] == 1:
 				respPackage = self.packager.genPackage( self.mainThreadName, 'Response', pid )
+				print 'my response package:%s'%respPackage.__repr__()
 				self.send( 'Response', respPackage )
 
 			func = getattr( self, packInfo['Name'] )

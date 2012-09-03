@@ -60,31 +60,32 @@ class Package():
 	def genPackage(self, master, name, pid, data=[]):
 		packInfo = self.nameFindPackage( name )
 		
-		print '='*20
-		print packInfo
-		
 		if packInfo['Struct'] == '':
-			return ''
-		struct = packInfo['Struct']
-		structCount = findall( '\d*[xcbB?hHiIlLqQfdspP]', struct ).__len__()
-		groupCount = len( data ) / structCount
-		
-		if len( data ) % structCount != 0 or ( struct[-1] in ['s', 'p'] and groupCount != 1 ):
-			raise Exception( 'Package data invalid!' )
-
-		if struct[-1] in ['s', 'p']:
-			struct = '%s%d%s'%( struct[:-1], len( data[-1] ), struct[-1] )
-		packBody = pack( '<%s' % ( struct * groupCount ), *data )
-		
-		#加密
-		if packInfo['Encrypt'] in self.__encipherer.keys():
-			packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'encrypt', packBody )
+			packBody = ''
+		else:
+			struct = packInfo['Struct']
+			structCount = findall( '\d*[xcbB?hHiIlLqQfdspP]', struct ).__len__()
+			groupCount = len( data ) / structCount
+			
+			if len( data ) % structCount != 0 or ( struct[-1] in ['s', 'p'] and groupCount != 1 ):
+				raise Exception( 'Package data invalid!' )
+	
+			if struct[-1] in ['s', 'p']:
+				struct = '%s%d%s'%( struct[:-1], len( data[-1] ), struct[-1] )
+			packBody = pack( '<%s' % ( struct * groupCount ), *data )
+			
+			#加密
+			if packInfo['Encrypt'] in self.__encipherer.keys():
+				packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'encrypt', packBody )
 		
 		bodySize = len( packBody )
 		return '%s%s' % ( self.genHeader( bodySize, packInfo['Code'], pid ), 
 							packBody )
 		
 	def parsePackage(self, master, code, packBody):
+		if packBody == '':
+			return ()
+		
 		packInfo = self.codeFindPackage( code )
 		
 		#解密

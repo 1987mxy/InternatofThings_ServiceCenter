@@ -1,3 +1,5 @@
+#coding=UTF-8
+
 '''
 Created on 2012-9-1
 
@@ -11,12 +13,14 @@ from lib.Securer.MyRsa import MyRsa
 from lib.Securer.MyDes import MyDes
 from lib.Securer.MyKey import MyKey
 from lib.Config import srvCenterConf
-from lib.Global import Packager, Logger
+from lib.Global import Packager, Logger, DB
 
 class srv(object):
 	def __init__(self,sock):
 		self.sock = sock
 		self.switch = True
+		
+		self.tStatus = {}
 
 	def config(self, config):
 		self.magicCode = config.magicCode
@@ -33,18 +37,21 @@ class srv(object):
 		sourceStream = ''
 		while self.switch:
 			recvStream = self.sock.recv( 1000 )
+			Logger.debug( 'receive raw stream from Server : ', recvStream )
 			if recvStream:
 				sourceStream = self.parseHeader( '%s%s' % ( sourceStream, recvStream ) )
 			else:
 				Logger.error( 'disconnect!' )
+				DB.stop()
+				self.sock.shutdown( socket.SHUT_RDWR )
 				self.sock.close()
-				break
+				self.switch = False
 
 	def parseHeader(self, stream):
 		if len(stream) >= self.headerSize:
 			head = unpack(self.headerStruct, stream[ : self.headerSize])
 			if head[1] != self.magicCode:
-				Logger.error('receive invalid package from %s : '%self.address, stream)
+				Logger.error('receive invalid package from Server : ', stream)
 				self.shutdown()
 			if head[0] + 2 <= len(stream):
 				mStream = stream[self.headerSize : head[0] + 2]
@@ -54,14 +61,21 @@ class srv(object):
 				stream = self.parseHeader(stream)
 		return stream
 	
-	def packQueue(self, pid, code, packbody ):
+	def packQueue(self, pid, code, packbody):
 		tname = threading.currentThread().getName()
-		data = Packager.parsePackage( tname, code, packbody )
 		packInfo = Packager.codeFindPackage( code )
+		data = Packager.parsePackage( tname, code, packbody )
+
+		#发送回应包
+		if packInfo['ExistReply'] == 1:
+			respPackage = Packager.genPackage( tname, 'Response', pid )
+			self.send( respPackage )
+
 		func = getattr(self, packInfo['Name'])
 		func( data )
 	
 	def send(self, data):
+		Logger.debug( 'send raw stream:', data )
 		self.sock.sendall( data )
 		
 	def PubKey(self, data):
@@ -87,7 +101,15 @@ class srv(object):
 		data = data[0]
 		terminalNames = data.split( ',' )
 		for terminal in terminalNames:
+			self.tStatus[terminal] = 0
 			Logger.info('terminal: %s'%terminal)
+			
+	def TerminalStatus(self, data):
+		data = list(data)
+		for t in self.tStatus.keys():
+			self.tStatus[t]=data.pop(0)
+		print self.tStatus
+		
 
 if __name__ == '__main__':
 	mobileSock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )

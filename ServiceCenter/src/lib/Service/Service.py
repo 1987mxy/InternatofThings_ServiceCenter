@@ -136,11 +136,13 @@ class Service(object):
 			Service.server[ destAddr ].commCondition.acquire()
 			Service.server[ destAddr ].packQueue.insert( 0, data )
 			Service.server[ destAddr ].commCondition.notify()
+			Service.server[ destAddr ].commCondition.release()
 		else:
 			for srv in Service.server.values():
 				srv.commCondition.acquire()
 				srv.packQueue.insert( 0, data )
 				srv.commCondition.notify()
+				srv.commCondition.release()
 		
 	def main(self, data):
 		pass

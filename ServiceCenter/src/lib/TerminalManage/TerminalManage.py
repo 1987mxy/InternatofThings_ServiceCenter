@@ -140,7 +140,6 @@ class TerminalManage(object):
 		if self.__status:
 			return self.__status.values()
 		else:
-			terminalList = []
 			return self.__db.io( 'select', [ self.__table, ','.join( self.__fieldList ) ] )
 	
 	def nameFindTerminal(self, name):
