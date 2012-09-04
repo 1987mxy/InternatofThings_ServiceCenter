@@ -112,9 +112,11 @@ class Service(object):
 				stream = stream[head[0] + 2 : ]
 				if head[2] != self.heartCode:
 					self.commCondition.acquire()
+					Logger.info('Service get communicate lock!', stream)
 					self.packQueue.insert(0, [head[3], head[2], mStream])
 					self.commCondition.notify()
 					self.commCondition.release()
+					Logger.info('Service release communicate lock!', stream)
 				stream = self.parseHeader(stream)
 		return stream
 
@@ -140,9 +142,11 @@ class Service(object):
 		else:
 			for srv in Service.server.values():
 				srv.commCondition.acquire()
+				Logger.info('Broadcast get communicate lock!')
 				srv.packQueue.insert( 0, data )
 				srv.commCondition.notify()
 				srv.commCondition.release()
+				Logger.info('Broadcast release communicate lock!')
 		
 	def main(self, data):
 		pass

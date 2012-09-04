@@ -71,10 +71,12 @@ class TerminalManage(object):
 		
 		def changeStatus( delay, destAddr ):
 			if delay:
-				Logger.info( 'Find Terminal %s!'%destAddr )
+				Logger.info( 'Terminal %s login!'%destAddr )
 				if self.__status.has_key( destAddr ):
 					if self.__status[ destAddr ][ 'Status' ] == False:
 						self.activateTerminal( destAddr )
+					else:
+						return;
 				else:
 					try:
 						host = socket.gethostbyaddr( destAddr )[0]
@@ -85,16 +87,23 @@ class TerminalManage(object):
 					mac = getMac( destAddr )
 					self.setTerminal( destAddr, mac, host )
 					self.__status[ destAddr ] = {'Name':host, 'IPv4':destAddr, 'Mac':mac, 'Type':1 }
+					queryPackInfo = Packager.nameFindPackage( 'QueryTerminals' )
+					OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
 				self.__status[ destAddr ][ 'Status' ] = True
+				queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
+				OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
 			else:
 				if self.__status.has_key( destAddr ):
-					self.__status[ destAddr ][ 'Status' ] = False
+					if self.__status[ destAddr ][ 'Status' ] == True:
+						Logger.info( 'Terminal %s logout!'%destAddr )
+						self.__status[ destAddr ][ 'Status' ] = False
+						queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
+						OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
 		
 		while self.__switch:
 			for existsAddr in self.__status.keys():
-				
 				ICMP.send_one_ping(mySocket, existsAddr, my_ID)
-				delay = ICMP.receive_one_ping(mySocket, my_ID, 2)
+				delay = ICMP.receive_one_ping(mySocket, my_ID, 1)
 				changeStatus( delay, existsAddr )
 			
 			for i in range( 1, ipCount ):
@@ -102,11 +111,8 @@ class TerminalManage(object):
 				if destAddr == IP or self.__status.has_key( destAddr ):
 					continue
 				ICMP.send_one_ping(mySocket, destAddr, my_ID)
-				delay = ICMP.receive_one_ping(mySocket, my_ID, 2)
+				delay = ICMP.receive_one_ping(mySocket, my_ID, 1)
 				changeStatus( delay, destAddr )
-				
-			queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
-			OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
 			sleep( 30 )
 
 		mySocket.close()

@@ -1,0 +1,37 @@
+2012-09-05 01:08:01,101 - INFO - Terminal 172.16.0.254 login!
+2012-09-05 01:08:01,131 - INFO - Inner service listening...
+2012-09-05 01:08:01,131 - INFO - Terminal 172.16.0.253 login!
+2012-09-05 01:08:01,131 - INFO - Outer service listening...
+2012-09-05 01:08:01,131 - INFO - Terminal 172.16.0.100 login!
+2012-09-05 01:08:08,601 - INFO - 172.16.0.101:41891 Outer service connected...
+2012-09-05 01:08:08,601 - INFO - outer lock waiting!
+2012-09-05 01:08:08,621 - DEBUG - 172.16.0.101 receiving...
+2012-09-05 01:08:08,651 - DEBUG - 172.16.0.101 send raw stream : 26 00 ba dc 01 00 00 00 30 1e 02 17 03 45 57 d4 0f 82 2e 2f 71 8e a8 6b 17 7d bc fd 6d 2d 62 c9 43 ef 43 02 03 01 00 01
+2012-09-05 01:08:08,691 - DEBUG - receive raw stream from 172.16.0.101 : 06 00 ba dc 03 00 00 00
+2012-09-05 01:08:08,691 - INFO - Service get communicate lock!
+2012-09-05 01:08:08,691 - INFO - Service release communicate lock!
+2012-09-05 01:08:08,691 - DEBUG - 172.16.0.101 receiving...
+2012-09-05 01:08:08,711 - INFO - received head from 172.16.0.101 : [0,  3]
+2012-09-05 01:08:08,711 - DEBUG - received package from 172.16.0.101 : 
+2012-09-05 01:08:08,721 - DEBUG - receive raw stream from 172.16.0.101 : 12 00 ba dc 02 00 02 00 5b ed 06 00 69 a4 bf c3 21 5e f4 ff
+2012-09-05 01:08:08,721 - INFO - outer lock waiting!
+2012-09-05 01:08:08,721 - INFO - Service get communicate lock!
+2012-09-05 01:08:08,721 - INFO - Service release communicate lock!
+2012-09-05 01:08:08,721 - DEBUG - 172.16.0.101 receiving...
+2012-09-05 01:08:08,721 - INFO - received head from 172.16.0.101 : [2,  2]
+2012-09-05 01:08:08,721 - DEBUG - received package from 172.16.0.101 : 5b ed 06 00 69 a4 bf c3 21 5e f4 ff
+2012-09-05 01:08:08,721 - DEBUG - 172.16.0.101 send raw stream : 06 00 ba dc 03 00 02 00
+2012-09-05 01:08:08,721 - INFO - received head from 172.16.0.101 : [1,  8]
+2012-09-05 01:08:08,721 - DEBUG - received package from 172.16.0.101 : 
+2012-09-05 01:08:08,721 - DEBUG - 172.16.0.101 send raw stream : 06 00 ba dc 03 00 01 00
+2012-09-05 01:08:08,721 - DEBUG - 172.16.0.101 send raw stream : 2c 00 ba dc 06 00 01 00 31 37 32 2e 31 36 2e 30 2e 32 35 34 2c 31 37 32 2e 31 36 2e 30 2e 32 35 33 2c 46 52 45 45 53 54 59 4c 45 2d 50 43
+2012-09-05 01:08:08,721 - DEBUG - receive raw stream from 172.16.0.101 : 06 00 ba dc 03 00 01 00
+2012-09-05 01:08:38,684 - INFO - received head from 172.16.0.101 : [1,  9]
+2012-09-05 01:08:38,684 - DEBUG - received package from 172.16.0.101 : 
+2012-09-05 01:08:38,684 - DEBUG - 172.16.0.101 send raw stream : 06 00 ba dc 03 00 01 00
+2012-09-05 01:08:38,684 - DEBUG - 172.16.0.101 send raw stream : 09 00 ba dc 07 00 02 00 01 01 01
+2012-09-05 01:09:08,697 - ERROR - 172.16.0.101 response time out !
+2012-09-05 01:09:08,697 - ERROR - 172.16.0.101 shutdown !
+2012-09-05 01:16:51,233 - INFO - Terminal 172.16.0.254 login!
+2012-09-05 01:16:53,236 - INFO - Terminal 172.16.0.253 logout!
+2012-09-05 01:16:53,236 - INFO - Terminal 172.16.0.100 login!

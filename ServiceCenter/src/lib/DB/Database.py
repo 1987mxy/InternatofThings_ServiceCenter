@@ -20,6 +20,7 @@ class Database(object):
 		self.__dbQueryQueue = []
 		self.__dbReturnQueue = {}
 		self.__dbCondition = None
+		self.__execCondition = None
 		self.__execThread = None
 		self.__execID = 0
 		
@@ -32,6 +33,7 @@ class Database(object):
 		
 	def running(self):
 		self.__dbCondition = threading.Condition()
+		self.__execCondition = threading.Condition()
 		self.__execThread = threading.Thread( target=self.execute )
 		self.__execThread.start()
 		
@@ -42,16 +44,19 @@ class Database(object):
 		self.__dbCondition.release()
 	
 	def io(self, function, argv):
-		while not self.__dbCondition.acquire():
-			sleep(0.2)
+		self.__dbCondition.acquire()
+		
+		self.__execCondition.acquire()
 		threadID = threading.currentThread().getName()
 		execFlag = '%s %d'%( threadID, self.__execID )
 		self.__dbQueryQueue.insert( 0, [ execFlag, function, argv ] )
-		self.__dbCondition.notify()
-		self.__dbCondition.wait()
+		self.__execCondition.notify()
+		self.__execCondition.wait()
 		result = self.__dbReturnQueue[ execFlag ]
 		del self.__dbReturnQueue[ execFlag ]
 		self.__execID += 1
+		self.__execCondition.release()
+		
 		self.__dbCondition.release()
 		return result
 	
@@ -62,14 +67,15 @@ class Database(object):
 			self.__db = sqlite3.connect('./lib/DB/Data.dat')
 			self.install()
 			
-		self.__dbCondition.acquire()
+		self.__execCondition.acquire()
 		while self.__switch:
 			if len( self.__dbQueryQueue ) <= 0:
-				self.__dbCondition.wait()
+				self.__execCondition.wait()
 			( execID, function, argv ) = self.__dbQueryQueue.pop()
 			func = getattr( self, function )
 			self.__dbReturnQueue[ execID ] = func( *argv )
-			self.__dbCondition.notify()
+			self.__execCondition.notify()
+		self.__execCondition.release()
 		
 	def install(self):
 		sql_file = open( './lib/DB/install.sql', 'rb' )

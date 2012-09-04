@@ -64,6 +64,7 @@ class OuterService(Service):
 				self.shutdown()
 			else:
 				self.chkCondition.wait()
+		self.chkCondition.release()
 
 	def send(self, packName, package):
 		super( OuterService, self ).send( package )
@@ -80,6 +81,7 @@ class OuterService(Service):
 		self.commCondition.acquire()
 		while self.switch:
 			if len( self.packQueue ) <= 0:
+				Logger.info('outer lock waiting!')
 				self.commCondition.wait()
 			( pid, code, package ) = self.packQueue.pop()
 			Logger.info('received head from %s : [%d, %2x]' % ( self.address, 
@@ -102,6 +104,7 @@ class OuterService(Service):
 			unitNum = packInfo['StructLabel'].split( ',' ).__len__()
 			data = [data[i : i + unitNum] for i in range( 0, len( data ), unitNum )]
 			func( data )
+		self.commCondition.release()
 
 	def Response(self, data):
 		self.respWaitCount -= 1
@@ -118,16 +121,11 @@ class OuterService(Service):
 		self.myDes.setKey( data[1] )
 		self.packager.setEncipherer( self.mainThreadName, 'des', self.myDes.crypt )
 		
-		terminalList = self.terminalManager.findAllTerminal()
-		terminalNames = [ ','.join( [theTerminal['Name'] for theTerminal in terminalList] ) ]
-		terminalInfoPackage = self.packager.genPackage( self.mainThreadName, 'TerminalInfo', self.pid, terminalNames )
-		self.send( 'TerminalInfo', terminalInfoPackage )
+		queryPackInfo = self.packager.nameFindPackage( 'QueryTerminals' )
+		self.packQueue.insert( 0, [ self.pid, queryPackInfo[ 'Code' ], '' ] )
 		
 		queryPackInfo = self.packager.nameFindPackage( 'QueryStatus' )
-		self.commCondition.acquire()
 		self.packQueue.insert( 0, [ self.pid, queryPackInfo[ 'Code' ], '' ] )
-		self.commCondition.notify()
-		self.commCondition.release()
 	
 	def WOL(self, data):
 		udp = socket( AF_INET, SOCK_DGRAM )
@@ -136,8 +134,14 @@ class OuterService(Service):
 			package = a2b_hex( 'f' * 12 + sub( '-', '', terminalInfo['Mac'] ) * 16 )
 			udp.sendto( package, ( BROADCASTADDR, 6666 ) )
 	
+	def QueryTerminals(self, data):
+		terminalList = self.terminalManager.findAllTerminal()
+		terminalNames = [ ','.join( [theTerminal['Name'] for theTerminal in terminalList] ) ]
+		terminalInfoPackage = self.packager.genPackage( self.mainThreadName, 'TerminalInfo', self.pid, terminalNames )
+		self.send( 'TerminalInfo', terminalInfoPackage )
+	
 	def QueryStatus(self, data):
 		terminalStatus = self.terminalManager.getStatus()
 		terminalStatusPackage = self.packager.genPackage( self.mainThreadName, 'TerminalStatus', self.pid, terminalStatus )
-		self.send( 'TerminalInfo', terminalStatusPackage )
+		self.send( 'TerminalStatus', terminalStatusPackage )
 		

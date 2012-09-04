@@ -7,6 +7,8 @@ Created on 2012-8-19
 import sqlite3, threading
 import os.path
 
+from time import sleep
+
 class Database(object):
 	'''
 	数据库类，用来操作“数据包表”和“终端表”
@@ -18,6 +20,7 @@ class Database(object):
 		self.__dbQueryQueue = []
 		self.__dbReturnQueue = {}
 		self.__dbCondition = None
+		self.__execCondition = None
 		self.__execThread = None
 		self.__execID = 0
 		
@@ -30,6 +33,7 @@ class Database(object):
 		
 	def running(self):
 		self.__dbCondition = threading.Condition()
+		self.__execCondition = threading.Condition()
 		self.__execThread = threading.Thread( target=self.execute )
 		self.__execThread.start()
 		
@@ -41,12 +45,18 @@ class Database(object):
 	
 	def io(self, function, argv):
 		self.__dbCondition.acquire()
-		self.__dbQueryQueue.insert( 0, [ self.__execID, function, argv ] )
-		self.__dbCondition.notify()
-		self.__dbCondition.wait()
-		result = self.__dbReturnQueue[ self.__execID ]
-		del self.__dbReturnQueue[ self.__execID ]
+		
+		self.__execCondition.acquire()
+		threadID = threading.currentThread().getName()
+		execFlag = '%s %d'%( threadID, self.__execID )
+		self.__dbQueryQueue.insert( 0, [ execFlag, function, argv ] )
+		self.__execCondition.notify()
+		self.__execCondition.wait()
+		result = self.__dbReturnQueue[ execFlag ]
+		del self.__dbReturnQueue[ execFlag ]
 		self.__execID += 1
+		self.__execCondition.release()
+		
 		self.__dbCondition.release()
 		return result
 	
@@ -57,14 +67,15 @@ class Database(object):
 			self.__db = sqlite3.connect('./lib/DB/Data.dat')
 			self.install()
 			
-		self.__dbCondition.acquire()
+		self.__execCondition.acquire()
 		while self.__switch:
 			if len( self.__dbQueryQueue ) <= 0:
-				self.__dbCondition.wait()
+				self.__execCondition.wait()
 			( execID, function, argv ) = self.__dbQueryQueue.pop()
 			func = getattr( self, function )
 			self.__dbReturnQueue[ execID ] = func( *argv )
-			self.__dbCondition.notify()
+			self.__execCondition.notify()
+		self.__execCondition.release()
 		
 	def install(self):
 		sql_file = open( './lib/DB/install.sql', 'rb' )
@@ -101,13 +112,14 @@ class Database(object):
 		cur = self.query( 'SELECT %s FROM %s %s'%( fields, table, where ) )
 		table = cur.fetchall()
 		dataList = []
-		for row in table:
-			data = {}
-			columnIndex = 0
-			for column in cur.description:
-				data[ column[0] ] = ( row[ columnIndex ].__class__ is unicode and str( row[ columnIndex ] ) ) or row[ columnIndex ]
-				columnIndex += 1
-			dataList.append( data )
+		if table != None:
+			for row in table:
+				data = {}
+				columnIndex = 0
+				for column in cur.description:
+					data[ column[0] ] = ( row[ columnIndex ].__class__ is unicode and str( row[ columnIndex ] ) ) or row[ columnIndex ]
+					columnIndex += 1
+				dataList.append( data )
 		return dataList
 	
 	def selectOne(self, table, fields='*', where=''):
@@ -115,16 +127,17 @@ class Database(object):
 		cur = self.query( 'SELECT %s FROM %s %s Limit 0, 1'%( fields, table, where ) )
 		row = cur.fetchone()
 		data = {}
-		columnIndex = 0
-		for column in cur.description:
-			data[ column[0] ] = ( row[ columnIndex ].__class__ is unicode and str( row[ columnIndex ] ) ) or row[ columnIndex ]
-			columnIndex += 1
+		if row != None:
+			columnIndex = 0
+			for column in cur.description:
+				data[ column[0] ] = ( row[ columnIndex ].__class__ is unicode and str( row[ columnIndex ] ) ) or row[ columnIndex ]
+				columnIndex += 1
 		return data
 	
 	def count(self, table, where=''):
 		where = ( where and 'WHERE %s'%where ) or ''
 		cur = self.query( 'SELECT COUNT(*) AS `count` FROM %s %s'%(table, where) )
-		return cur.fetchone()[ 'count' ]
+		return cur.fetchone()[0]
 	
 	def query(self, sql):
 		cur = self.__db.execute( sql )

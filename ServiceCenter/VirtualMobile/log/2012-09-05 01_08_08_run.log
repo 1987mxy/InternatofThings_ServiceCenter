@@ -1,0 +1,16 @@
+2012-09-05 01:08:08,651 - DEBUG - receive raw stream from Server : 26 00 ba dc 01 00 00 00 30 1e 02 17 03 45 57 d4 0f 82 2e 2f 71 8e a8 6b 17 7d bc fd 6d 2d 62 c9 43 ef 43 02 03 01 00 01
+2012-09-05 01:08:08,691 - DEBUG - send raw stream:06 00 ba dc 03 00 00 00
+2012-09-05 01:08:08,721 - DEBUG - send raw stream:12 00 ba dc 02 00 02 00 5b ed 06 00 69 a4 bf c3 21 5e f4 ff
+2012-09-05 01:08:08,721 - DEBUG - receive raw stream from Server : 06 00 ba dc 03 00 02 00
+2012-09-05 01:08:08,721 - INFO - receive response!
+2012-09-05 01:08:08,721 - DEBUG - receive raw stream from Server : 06 00 ba dc 03 00 01 00
+2012-09-05 01:08:08,721 - INFO - receive response!
+2012-09-05 01:08:08,721 - DEBUG - receive raw stream from Server : 2c 00 ba dc 06 00 01 00 31 37 32 2e 31 36 2e 30 2e 32 35 34 2c 31 37 32 2e 31 36 2e 30 2e 32 35 33 2c 46 52 45 45 53 54 59 4c 45 2d 50 43
+2012-09-05 01:08:08,721 - DEBUG - send raw stream:06 00 ba dc 03 00 01 00
+2012-09-05 01:08:08,721 - INFO - terminal: 172.16.0.254
+2012-09-05 01:08:08,721 - INFO - terminal: 172.16.0.253
+2012-09-05 01:08:08,721 - INFO - terminal: FREESTYLE-PC
+2012-09-05 01:08:38,684 - DEBUG - receive raw stream from Server : 06 00 ba dc 03 00 01 00
+2012-09-05 01:08:38,684 - INFO - receive response!
+2012-09-05 01:08:38,684 - DEBUG - receive raw stream from Server : 09 00 ba dc 07 00 02 00 01 01 01
+2012-09-05 01:08:38,684 - DEBUG - send raw stream:06 00 ba dc 03 00 02 00

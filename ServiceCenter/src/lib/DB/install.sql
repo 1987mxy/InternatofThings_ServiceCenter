@@ -2,8 +2,8 @@ Create TABLE [DataPackage](
 	[PackageID] integer PRIMARY KEY UNIQUE NOT NULL COLLATE NOCASE
 	,[Name] varchar(64) UNIQUE NOT NULL COLLATE RTRIM
 	,[Code] binary(16) UNIQUE NOT NULL COLLATE BINARY
-	,[Struct] varchar(32) NOT NULL COLLATE RTRIM
-	,[StructLabel] text NOT NULL COLLATE RTRIM
+	,[Struct] varchar(32) COLLATE RTRIM
+	,[StructLabel] text COLLATE RTRIM
 	,[ExistReply] bit(1) NOT NULL DEFAULT 1 COLLATE BINARY
 	,[Encrypt] varchar(8) NOT NULL DEFAULT none COLLATE RTRIM
 	,[Memo] text COLLATE NOCASE
@@ -15,7 +15,8 @@ INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, 
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID', 1, 'des','远程唤醒' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'TerminalInfo', 6, 's', 'terminalInfo', 1, 'des', '终端信息' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'TerminalStatus', 7, 'B', 'terminalStatus', 1, 'des', '终端状态' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'QueryStatus', 8, '', '', 1, 'none', '询问状态' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'QueryTerminals', 8, '', '', 1, 'none', '询问终端信息' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Memo ) VALUES ( 'QueryStatus', 9, '', '', 1, 'none', '询问终端状态' );
 
 Create TABLE [Terminal](
 	[TerminalID] integer PRIMARY KEY UNIQUE NOT NULL COLLATE NOCASE
