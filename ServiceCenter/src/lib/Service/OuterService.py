@@ -24,6 +24,7 @@ class OuterService(Service):
 	
 	def __init__(self, socket, address):
 		super( OuterService, self ).__init__( socket, address )
+		self.myAuth = 0
 		
 		self.respWaitCount = 0
 		self.respSurplusTime = 0
@@ -67,6 +68,10 @@ class OuterService(Service):
 		self.chkCondition.release()
 
 	def send(self, packName, package):
+		if not self.packager.nameAuthorized( packName, self.myAuth ):
+			Logger.warning( '%s do not allow to send %s package'%( self.address, packName ) )
+			return
+			
 		super( OuterService, self ).send( package )
 		
 		if self.packager.existsReply( packName ):
@@ -75,20 +80,16 @@ class OuterService(Service):
 				self.respSurplusTime += self.timeout
 				self.respWaitCount += 1
 			else:
-				Logger.info('send getting checkLock!');
 				self.chkCondition.acquire()
-				Logger.info('send got checkLock!');
 				self.respSurplusTime += self.timeout
 				self.respWaitCount += 1
 				self.chkCondition.notify()
 				self.chkCondition.release()
-				Logger.info('send release checkLock!');
 
 	def main(self):
 		self.commCondition.acquire()
 		while self.switch:
 			if len( self.packQueue ) <= 0:
-				Logger.info('outer lock waiting!')
 				self.commCondition.wait()
 			( pid, code, package ) = self.packQueue.pop()
 			Logger.info('received head from %s : [%d, %2x]' % ( self.address, 
@@ -96,6 +97,10 @@ class OuterService(Service):
 																code ) )
 			Logger.debug('received package from %s : '%self.address, package)
 			
+			#检查权限
+			if not self.packager.codeAuthorized( code, self.myAuth ):
+				Logger.warning( '%s do not allow to response the package %d'%( self.address, code ) )
+				continue
 			
 			#解析包
 			data = self.packager.parsePackage( self.mainThreadName, code, package )
@@ -104,7 +109,6 @@ class OuterService(Service):
 			#发送回应包
 			if packInfo['ExistReply'] == 1:
 				respPackage = self.packager.genPackage( self.mainThreadName, 'Response', pid )
-				print 'my response package:%s'%respPackage.__repr__()
 				self.send( 'Response', respPackage )
 
 			func = getattr( self, packInfo['Name'] )
@@ -118,12 +122,11 @@ class OuterService(Service):
 
 	def Key(self, data):
 		data=data[0]
-		print 'key:%d'%data[0]
 		self.myKey = MyKey.MyKey()
 		if not self.myKey.check( data[0] ) and self.switch == True:
 			self.shutdown()
 		
-		print 'deskey:%s'%data[1].__repr__()
+		self.myAuth = 10
 		self.myDes = MyDes.MyDes()
 		self.myDes.setKey( data[1] )
 		self.packager.setEncipherer( self.mainThreadName, 'des', self.myDes.crypt )
@@ -137,9 +140,10 @@ class OuterService(Service):
 	def WOL(self, data):
 		udp = socket( AF_INET, SOCK_DGRAM )
 		for groupData in data:
-			terminalInfo = self.terminalManager.idFindTerminal( groupData[0] )
-			package = a2b_hex( 'f' * 12 + sub( '-', '', terminalInfo['Mac'] ) * 16 )
-			udp.sendto( package, ( BROADCASTADDR, 6666 ) )
+			terminalInfo = self.terminalManager.selectTerminal( groupData[0] )
+			wolPackage = a2b_hex( 'f' * 12 + sub( '-', '', terminalInfo['Mac'] ) * 16 )
+			Logger.info( '%s WOL %s:'%( self.address, terminalInfo['Name'] ), wolPackage )
+			udp.sendto( wolPackage, ( BROADCASTADDR, 6666 ) )
 	
 	def QueryTerminals(self, data):
 		terminalList = self.terminalManager.findAllTerminal()

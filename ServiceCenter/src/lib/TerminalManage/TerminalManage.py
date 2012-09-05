@@ -46,6 +46,7 @@ class TerminalManage(object):
 	def instance():
 		if TerminalManage.__me == None:
 			TerminalManage.__me = TerminalManage()
+			TerminalManage.__me.running()
 		return TerminalManage.__me
 	
 	def setDB(self, db):
@@ -84,18 +85,14 @@ class TerminalManage(object):
 							raise Exception( 'get host name error!' )
 						host = destAddr
 					mac = getMac( destAddr )
-					self.setTerminal( destAddr, mac, host )
-					self.__status[ destAddr ] = {'Name':host, 'IPv4':destAddr, 'Mac':mac, 'Type':1 }
+					terminalID = self.setTerminal( destAddr, mac, host )
+					self.__status[ destAddr ] = { 'TerminalID':terminalID, 'Name':host, 'IPv4':destAddr, 'Mac':mac }
 					queryPackInfo = Packager.nameFindPackage( 'QueryTerminals' )
 					OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
 				Logger.info( 'Terminal %s login!'%destAddr )
 				self.__status[ destAddr ][ 'Status' ] = True
 				queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
 				OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
-				
-				print '='*10
-				for i in self.__status:
-					print '%s:%s'%(self.__status[i]['Name'], self.__status[i]['Status'])
 			else:
 				if self.__status.has_key( destAddr ):
 					if self.__status[ destAddr ][ 'Status' ] == True:
@@ -103,10 +100,6 @@ class TerminalManage(object):
 						self.__status[ destAddr ][ 'Status' ] = False
 						queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
 						OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
-						
-						print '='*10
-						for i in self.__status:
-							print '%s:%s'%(self.__status[i]['Name'], self.__status[i]['Status'])
 		
 		while self.__switch:
 			for existsAddr in self.__status.keys():
@@ -158,14 +151,14 @@ class TerminalManage(object):
 	
 	def nameFindTerminal(self, name):
 		if self.__status:
-			return [ terminal for terminal in self.__status.values() if terminal['Name'] == name ]
+			return [ terminal for terminal in self.__status.values() if terminal['Name'] == name ][ 0 ]
 		else:
 			where = 'Name="%s"'%name
 			return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
 
 	def idFindTerminal(self, terminalID):
 		if self.__status:
-			return [ terminal for terminal in self.__status.values() if terminal['TerminalID'] == terminalID ]
+			return [ terminal for terminal in self.__status.values() if terminal['TerminalID'] == terminalID ][ 0 ]
 		else:
 			where = 'TerminalID=%s'%terminalID
 			return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )
@@ -181,3 +174,6 @@ class TerminalManage(object):
 			return [ terminal['Status'] for terminal in self.__status.values() ]
 		else:
 			return self.__status.values()[ index ][ 'Status' ]
+	
+	def selectTerminal(self, index):
+		return self.__status.values()[ index ]

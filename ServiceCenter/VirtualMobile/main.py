@@ -7,11 +7,10 @@ Created on 2012-9-1
 '''
 
 import socket, threading
-from struct import unpack, pack, calcsize
+from struct import unpack, calcsize
 
 from lib.Securer.MyRsa import MyRsa
 from lib.Securer.MyDes import MyDes
-from lib.Securer.MyKey import MyKey
 from lib.Config import srvCenterConf
 from lib.Global import Packager, Logger, DB
 
@@ -21,6 +20,8 @@ class srv(object):
 		self.switch = True
 		
 		self.tStatus = []
+		
+		self.tname = None
 
 	def config(self, config):
 		self.magicCode = config.magicCode
@@ -31,7 +32,9 @@ class srv(object):
 	
 	def running(self):
 		t = threading.Thread(target=self.recv)
+		self.tname = t.getName()
 		t.start()
+		self.o = threading.Thread(target=self.open)
 	
 	def recv(self):
 		sourceStream = ''
@@ -62,13 +65,12 @@ class srv(object):
 		return stream
 	
 	def packQueue(self, pid, code, packbody):
-		tname = threading.currentThread().getName()
 		packInfo = Packager.codeFindPackage( code )
-		data = Packager.parsePackage( tname, code, packbody )
+		data = Packager.parsePackage( self.tname, code, packbody )
 
 		#发送回应包
 		if packInfo['ExistReply'] == 1:
-			respPackage = Packager.genPackage( tname, 'Response', pid )
+			respPackage = Packager.genPackage( self.tname, 'Response', pid )
 			self.send( respPackage )
 
 		func = getattr(self, packInfo['Name'])
@@ -79,43 +81,57 @@ class srv(object):
 		self.sock.sendall( data )
 		
 	def PubKey(self, data):
-		tname = threading.currentThread().getName()
 		myRsa = MyRsa()
-		print myRsa.setPubKey( data[0] )
-		Packager.setEncipherer( tname, 'rsa_public', myRsa.publicCrypt )
+		Packager.setEncipherer( self.tname, 'rsa_public', myRsa.publicCrypt )
 		
 		myDes = MyDes()
 		des = myDes.getKey()
-		print 'des:%s'%des.__repr__()
-		Packager.setEncipherer( tname, 'des', myDes.crypt )
-		myKey = MyKey()
-		key = myKey.getKey()
-		print 'key:%d'%key
-		keyPackage = Packager.genPackage( tname, 'Key', 2, [key, des])
+		Packager.setEncipherer( self.tname, 'des', myDes.crypt )
+		key = int( raw_input( 'Please input your Secret Key: ' ) )
+		keyPackage = Packager.genPackage( self.tname, 'Key', 2, [key, des])
 		self.send( keyPackage )
 		
 	def Response(self, data):
-		Logger.info( 'receive response!' )
+		Logger.debug( 'receive response!' )
 		
 	def TerminalInfo(self, data):
 		data = data[0]
 		terminalNames = data.split( ',' )
 		self.tStatus = []
+		print 'Terminal'+'='*10
 		for terminal in terminalNames:
 			self.tStatus.append([terminal,0])
 			Logger.info('terminal: %s'%terminal)
 			
 	def TerminalStatus(self, data):
 		data = list(data)
+		print 'Terminal Status'+'='*10
 		for t in self.tStatus:
-			t[1]=data.pop(0)
-		print dict(self.tStatus)
+			status = data.pop(0)
+			print '%s:%s'%( t[0], (status==1 and 'online') or 'offline' )
+			t[1]=status
+			
+		if not self.o.isAlive():
+			self.o.start()
 		
+	def open(self):
+		print '='*10
+		while self.switch:
+			name = raw_input( 'which terminal: ' )
+			for i in range( len( self.tStatus ) ):
+				if self.tStatus[i][0] == name:
+					if self.tStatus[i][1] == 0:
+						wolPackager = Packager.genPackage( self.tname, 'WOL', 3, [ i ] )
+						self.send( wolPackager )
+						Logger.info( 'open %s!'%self.tStatus[i][0] )
+					else:
+						Logger.info( '%s is online!'%self.tStatus[i][0] )
+					break;
 
 if __name__ == '__main__':
 	mobileSock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-#	mobileSock.connect( ( '172.16.0.101', 8782 ) )
-	mobileSock.connect( ( '172.16.27.192', 8782 ) )
+	mobileSock.connect( ( '172.16.0.101', 8782 ) )
+#	mobileSock.connect( ( '172.16.27.192', 8782 ) )
 	
 	s = srv( mobileSock )
 	s.config( srvCenterConf )

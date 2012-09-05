@@ -15,7 +15,7 @@ class Package():
 	def __init__(self):
 		self.__db = None
 		self.__table = 'datapackage'
-		self.__fieldList = [ 'PackageID', 'Name', 'Code', 'Struct', 'StructLabel', 'ExistReply', 'Encrypt' ]
+		self.__fieldList = [ 'PackageID', 'Name', 'Code', 'Struct', 'StructLabel', 'ExistReply', 'Encrypt', 'Auth' ]
 		
 		self.__magicCode = None
 		self.__heartCode = None
@@ -142,3 +142,13 @@ class Package():
 	def existsReply(self, name):
 		where = 'Name="%s"'%name
 		return self.__db.io( 'selectOne', [ self.__table, ','.join( self.__fieldList ), where ] )['ExistReply'] == 0b1
+	
+	def nameAuthorized(self, name, auth):
+		where = 'Name="%s" AND Auth<=%d'%( name, auth )
+		count = self.__db.io( 'count', [ self.__table, where ] )
+		return count > 0
+	
+	def codeAuthorized(self, code, auth):
+		where = 'Code=%d AND Auth<=%d'%( code, auth )
+		count = self.__db.io( 'count', [ self.__table, where ] )
+		return count > 0
