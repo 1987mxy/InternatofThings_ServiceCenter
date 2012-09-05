@@ -71,7 +71,6 @@ class TerminalManage(object):
 		
 		def changeStatus( delay, destAddr ):
 			if delay:
-				Logger.info( 'Terminal %s login!'%destAddr )
 				if self.__status.has_key( destAddr ):
 					if self.__status[ destAddr ][ 'Status' ] == False:
 						self.activateTerminal( destAddr )
@@ -89,9 +88,14 @@ class TerminalManage(object):
 					self.__status[ destAddr ] = {'Name':host, 'IPv4':destAddr, 'Mac':mac, 'Type':1 }
 					queryPackInfo = Packager.nameFindPackage( 'QueryTerminals' )
 					OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
+				Logger.info( 'Terminal %s login!'%destAddr )
 				self.__status[ destAddr ][ 'Status' ] = True
 				queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
 				OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
+				
+				print '='*10
+				for i in self.__status:
+					print '%s:%s'%(self.__status[i]['Name'], self.__status[i]['Status'])
 			else:
 				if self.__status.has_key( destAddr ):
 					if self.__status[ destAddr ][ 'Status' ] == True:
@@ -99,6 +103,10 @@ class TerminalManage(object):
 						self.__status[ destAddr ][ 'Status' ] = False
 						queryPackInfo = Packager.nameFindPackage( 'QueryStatus' )
 						OuterService.broadcast( [ 0, queryPackInfo[ 'Code' ], '' ] )
+						
+						print '='*10
+						for i in self.__status:
+							print '%s:%s'%(self.__status[i]['Name'], self.__status[i]['Status'])
 		
 		while self.__switch:
 			for existsAddr in self.__status.keys():

@@ -60,7 +60,7 @@ class OuterService(Service):
 				sleep( self.timeout )
 				self.respSurplusTime -= self.timeout
 			if self.respWaitCount > 0:
-				Logger.error('%s response time out !'%self.address)
+				Logger.error('%s response time out ! %d'%(self.address, self.respWaitCount))
 				self.shutdown()
 			else:
 				self.chkCondition.wait()
@@ -70,12 +70,19 @@ class OuterService(Service):
 		super( OuterService, self ).send( package )
 		
 		if self.packager.existsReply( packName ):
-			self.chkCondition.acquire()
 			self.pid += 1
-			self.respSurplusTime += self.timeout
-			self.respWaitCount += 1
-			self.chkCondition.notify()
-			self.chkCondition.release()
+			if self.respSurplusTime>0:
+				self.respSurplusTime += self.timeout
+				self.respWaitCount += 1
+			else:
+				Logger.info('send getting checkLock!');
+				self.chkCondition.acquire()
+				Logger.info('send got checkLock!');
+				self.respSurplusTime += self.timeout
+				self.respWaitCount += 1
+				self.chkCondition.notify()
+				self.chkCondition.release()
+				Logger.info('send release checkLock!');
 
 	def main(self):
 		self.commCondition.acquire()
@@ -137,11 +144,13 @@ class OuterService(Service):
 	def QueryTerminals(self, data):
 		terminalList = self.terminalManager.findAllTerminal()
 		terminalNames = [ ','.join( [theTerminal['Name'] for theTerminal in terminalList] ) ]
+		Logger.info('terminal name:%s'%terminalNames)
 		terminalInfoPackage = self.packager.genPackage( self.mainThreadName, 'TerminalInfo', self.pid, terminalNames )
 		self.send( 'TerminalInfo', terminalInfoPackage )
 	
 	def QueryStatus(self, data):
 		terminalStatus = self.terminalManager.getStatus()
+		Logger.info('terminal status:%s'%terminalStatus)
 		terminalStatusPackage = self.packager.genPackage( self.mainThreadName, 'TerminalStatus', self.pid, terminalStatus )
 		self.send( 'TerminalStatus', terminalStatusPackage )
 		

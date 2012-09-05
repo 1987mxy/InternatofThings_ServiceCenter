@@ -20,7 +20,7 @@ class srv(object):
 		self.sock = sock
 		self.switch = True
 		
-		self.tStatus = {}
+		self.tStatus = []
 
 	def config(self, config):
 		self.magicCode = config.magicCode
@@ -100,20 +100,23 @@ class srv(object):
 	def TerminalInfo(self, data):
 		data = data[0]
 		terminalNames = data.split( ',' )
+		self.tStatus = []
 		for terminal in terminalNames:
-			self.tStatus[terminal] = 0
+			self.tStatus.append([terminal,0])
 			Logger.info('terminal: %s'%terminal)
 			
 	def TerminalStatus(self, data):
 		data = list(data)
-		for t in self.tStatus.keys():
-			self.tStatus[t]=data.pop(0)
-		print self.tStatus
+		for t in self.tStatus:
+			t[1]=data.pop(0)
+		print dict(self.tStatus)
 		
 
 if __name__ == '__main__':
 	mobileSock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-	mobileSock.connect( ( '172.16.0.101', 8782 ) )
+#	mobileSock.connect( ( '172.16.0.101', 8782 ) )
+	mobileSock.connect( ( '172.16.27.192', 8782 ) )
+	
 	s = srv( mobileSock )
 	s.config( srvCenterConf )
 	s.running()
