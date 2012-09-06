@@ -32,7 +32,7 @@ class MyDes(object):
 		self.__generate()
 		
 	def __generate(self):
-		self.__desKey = des( self.__key, CBC, bytearray( 8 ), pad=None, padmode=PAD_PKCS5 )
+		self.__desKey = des( self.__key, pad=None, padmode=PAD_PKCS5 )
 		
 	def crypt(self, operate, data):
 		if operate == 'encrypt':

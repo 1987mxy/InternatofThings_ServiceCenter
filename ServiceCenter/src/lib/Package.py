@@ -75,7 +75,7 @@ class Package():
 			packBody = pack( '<%s' % ( struct * groupCount ), *data )
 			
 			#加密
-			if packInfo['Encrypt'] in self.__encipherer.keys():
+			if master in self.__encipherer.keys() and packInfo['Encrypt'] in self.__encipherer[ master ].keys():
 				packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'encrypt', packBody )
 		
 		bodySize = len( packBody )
@@ -89,7 +89,7 @@ class Package():
 		packInfo = self.codeFindPackage( code )
 		
 		#解密
-		if packInfo['Encrypt'] in self.__encipherer.keys():
+		if master in self.__encipherer.keys() and packInfo['Encrypt'] in self.__encipherer[ master ].keys():
 			packBody = self.__encipherer[ master ][ packInfo['Encrypt'] ]( 'decrypt', packBody )
 		
 		struct = packInfo['Struct']

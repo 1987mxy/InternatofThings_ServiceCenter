@@ -81,7 +81,9 @@ class srv(object):
 		self.sock.sendall( data )
 		
 	def PubKey(self, data):
+		data = data[0]
 		myRsa = MyRsa()
+		myRsa.setPubKey( data )
 		Packager.setEncipherer( self.tname, 'rsa_public', myRsa.publicCrypt )
 		
 		myDes = MyDes()

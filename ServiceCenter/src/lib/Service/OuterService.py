@@ -127,8 +127,8 @@ class OuterService(Service):
 			self.shutdown()
 		
 		self.myAuth = 10
-		self.myDes = MyDes.MyDes()
-		self.myDes.setKey( data[1] )
+		self.myDes = MyDes.MyDes( data[1] )
+		print data[1].__repr__()
 		self.packager.setEncipherer( self.mainThreadName, 'des', self.myDes.crypt )
 		
 		queryPackInfo = self.packager.nameFindPackage( 'QueryTerminals' )

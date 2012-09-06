@@ -5,12 +5,12 @@ Create TABLE [DataPackage](
 	,[Struct] varchar(32) COLLATE RTRIM
 	,[StructLabel] text COLLATE RTRIM
 	,[ExistReply] bit(1) NOT NULL DEFAULT 1 COLLATE BINARY
-	,[Encrypt] varchar(8) NOT NULL DEFAULT none COLLATE RTRIM
+	,[Encrypt] varchar(16) NOT NULL DEFAULT none COLLATE RTRIM
 	,[Auth] integer NOT NULL DEFAULT 0 COLLATE NOCASE
 	,[Memo] text COLLATE NOCASE
 );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'PubKey', 1, 's', 'pubkey', 1, 'none', 0, '公钥' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Key', 2, 'Ls', 'password,deskey', 1, 'rsa_public', 0, '口令' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Key', 2, 'Ls', 'password,deskey', 1, 'rsa_private', 0, '口令' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Response', 3, '', '', 0, 'none', 0, '响应' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'ShutDown', 4, '', '', 0, 'none', 0, '断开' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID', 1, 'des', 10,'远程唤醒' );
