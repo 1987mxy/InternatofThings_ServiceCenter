@@ -89,7 +89,7 @@ class srv(object):
 		myAes = MyAes()
 		myAes.generate()
 		aes = myAes.getKey()
-		Packager.setEncipherer( self.tname, 'des', myAes.crypt )
+		Packager.setEncipherer( self.tname, 'aes', myAes.crypt )
 		key = int( raw_input( 'Please input your Secret Key: ' ) )
 		keyPackage = Packager.genPackage( self.tname, 'Key', 2, [key, aes])
 		self.send( keyPackage )

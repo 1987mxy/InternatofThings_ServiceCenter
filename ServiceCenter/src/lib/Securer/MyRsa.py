@@ -36,24 +36,27 @@ class MyRsa(object):
 		elif operate == 'decrypt':
 			return self.__privateKey.decrypt( data )
 	
+	def getPrivKey(self):
+		return self.__privateKey.exportKey( 'DER' )
+	
 	def getPubKey(self):
 		return self.__publicKey.exportKey( 'DER' )
 	
 	def setPubKey(self, publicKey):
 		self.__publicKey = RSA.importKey( publicKey )
 	
-#===============================================================================
-# #unit testing
-# if __name__=='__main__':
-#	myRsa = MyRsa()
-#	myRsa.generate()
-#	bk = myRsa.getPubKey()
-#	print 'bk:%d'%len( bk )
-#	
-#	_myRsa = MyRsa()
-#	_myRsa.setPubKey( bk )
-#	c = _myRsa.publicCrypt( 'encrypt', '1987mxy' )
-#	print 'c:%d'%len( c )
-# 
-#	print myRsa.privateCrypt( 'decrypt', c )
-#===============================================================================
+#unit testing
+if __name__=='__main__':
+	myRsa = MyRsa()
+	myRsa.generate()
+	pk = myRsa.getPrivKey()
+	print 'pk:%d'%len( pk )
+	bk = myRsa.getPubKey()
+	print 'bk:%d'%len( bk )
+	
+	_myRsa = MyRsa()
+	_myRsa.setPubKey( bk )
+	c = _myRsa.publicCrypt( 'encrypt', '1987mxy'*10 )
+	print 'c:%d'%len( c )
+ 
+	print myRsa.privateCrypt( 'decrypt', c )

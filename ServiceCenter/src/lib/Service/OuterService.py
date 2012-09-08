@@ -129,7 +129,7 @@ class OuterService(Service):
 		self.myAuth = 10
 		self.myAes = MyAes.MyAes()
 		self.myAes.setKey(  data[1] )
-		self.packager.setEncipherer( self.mainThreadName, 'des', self.myAes.crypt )
+		self.packager.setEncipherer( self.mainThreadName, 'aes', self.myAes.crypt )
 		
 		queryPackInfo = self.packager.nameFindPackage( 'QueryTerminals' )
 		self.packQueue.insert( 0, [ self.pid, queryPackInfo[ 'Code' ], '' ] )

@@ -49,18 +49,16 @@ class MyAes(object):
 		self.__iv = key[16:]
 		self.generate()
 		
-#===============================================================================
-# #unit testing
-# if __name__=='__main__':
-#	myAes = MyAes()
-#	myAes.generate()
-#	key = myAes.getKey()
-#	print 'key:%d'%len(key)
-#	c = myAes.crypt( 'encrypt', '1987mxy' )
-#	print 'c:%d'%len(c)
-#	
-#	_myAes = MyAes()
-#	_myAes.setKey( key )
-#	_myAes.generate()
-#	print _myAes.crypt( 'decrypt', c )
-#===============================================================================
+#unit testing
+if __name__=='__main__':
+	myAes = MyAes()
+	myAes.generate()
+	key = myAes.getKey()
+	print 'key:%d'%len(key)
+	c = myAes.crypt( 'encrypt', '1987mxy' )
+	print 'c:%d'%len(c)
+	
+	_myAes = MyAes()
+	_myAes.setKey( key )
+	_myAes.generate()
+	print _myAes.crypt( 'decrypt', c )

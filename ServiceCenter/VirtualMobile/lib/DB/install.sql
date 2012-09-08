@@ -10,12 +10,12 @@ Create TABLE [DataPackage](
 	,[Memo] text COLLATE NOCASE
 );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'PubKey', 1, 's', 'pubkey', 1, 'none', 0, '公钥' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Key', 2, 'Ls', 'password,deskey', 1, 'rsa_public', 0, '口令' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Key', 2, 'Ls', 'password,aeskey', 1, 'rsa_public', 0, '口令' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'Response', 3, '', '', 0, 'none', 0, '响应' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'ShutDown', 4, '', '', 0, 'none', 0, '断开' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID', 1, 'des', 10,'远程唤醒' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'TerminalInfo', 6, 's', 'terminalInfo', 1, 'des', 10, '终端信息' );
-INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'TerminalStatus', 7, 'B', 'terminalStatus', 1, 'des', 10, '终端状态' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'WOL', 5, 'B', 'terminalID', 1, 'aes', 10,'远程唤醒' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'TerminalInfo', 6, 's', 'terminalInfo', 1, 'aes', 10, '终端信息' );
+INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'TerminalStatus', 7, 'B', 'terminalStatus', 1, 'aes', 10, '终端状态' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'QueryTerminals', 8, '', '', 1, 'none', 10, '询问终端信息' );
 INSERT INTO datapackage ( Name, Code, Struct, StructLabel, ExistReply, Encrypt, Auth, Memo ) VALUES ( 'QueryStatus', 9, '', '', 1, 'none', 10, '询问终端状态' );
 

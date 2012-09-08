@@ -7,8 +7,6 @@ Created on 2012-8-19
 import sqlite3, threading
 import os.path
 
-from time import sleep
-
 class Database(object):
 	'''
 	数据库类，用来操作“数据包表”和“终端表”
