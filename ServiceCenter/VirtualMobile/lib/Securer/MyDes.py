@@ -39,6 +39,3 @@ class MyDes(object):
 			return self.__desKey.encrypt( data )
 		elif operate == 'decrypt':
 			return self.__desKey.decrypt( data )
-
-	def getKey(self):
-		return self.__key

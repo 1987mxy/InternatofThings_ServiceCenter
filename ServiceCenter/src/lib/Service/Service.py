@@ -96,9 +96,8 @@ class Service(object):
 					Logger.info( '%s disconnect...' % self.address )
 					self.shutdown()
 		except:
-			Logger.error( 'receive error : %s' % format_exc() )
-			Logger.error('%s receive error : %s'%( self.address, 
-											    format_exc() ) )
+			Logger.error( '%s receive error : \n%s' % ( self.address, 
+														format_exc() ) )
 			self.shutdown()
 
 	def parseHeader(self, stream):

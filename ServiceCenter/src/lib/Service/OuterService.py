@@ -15,7 +15,7 @@ from Service import Service
 
 from lib.Global import Logger
 from lib.Config import BROADCASTADDR
-from lib.Securer import MyRsa, MyDes, MyKey
+from lib.Securer import MyRsa, MyAes, MyKey
 
 class OuterService(Service):
 	'''
@@ -32,12 +32,12 @@ class OuterService(Service):
 		self.chkCondition = None
 
 	def sendPubKey(self):
-		self.rsa = MyRsa.MyRsa()
-		self.rsa.generate()
-		pubKey = self.rsa.getPubKey()
+		self.myRsa = MyRsa.MyRsa()
+		self.myRsa.generate()
+		pubKey = self.myRsa.getPubKey()
 		
-		self.packager.setEncipherer( self.mainThreadName, 'rsa_public', self.rsa.publicCrypt )
-		self.packager.setEncipherer( self.mainThreadName, 'rsa_private', self.rsa.privateCrypt )
+		self.packager.setEncipherer( self.mainThreadName, 'rsa_public', self.myRsa.publicCrypt )
+		self.packager.setEncipherer( self.mainThreadName, 'rsa_private', self.myRsa.privateCrypt )
 		
 		pubKeyPackage = self.packager.genPackage( self.mainThreadName, 'PubKey', self.pid, [ pubKey ] )
 		self.send( 'PubKey', pubKeyPackage )
@@ -127,9 +127,9 @@ class OuterService(Service):
 			self.shutdown()
 		
 		self.myAuth = 10
-		self.myDes = MyDes.MyDes( data[1] )
-		print data[1].__repr__()
-		self.packager.setEncipherer( self.mainThreadName, 'des', self.myDes.crypt )
+		self.myAes = MyAes.MyAes()
+		self.myAes.setKey(  data[1] )
+		self.packager.setEncipherer( self.mainThreadName, 'des', self.myAes.crypt )
 		
 		queryPackInfo = self.packager.nameFindPackage( 'QueryTerminals' )
 		self.packQueue.insert( 0, [ self.pid, queryPackInfo[ 'Code' ], '' ] )

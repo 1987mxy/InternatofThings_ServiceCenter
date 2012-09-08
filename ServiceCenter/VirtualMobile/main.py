@@ -10,7 +10,7 @@ import socket, threading
 from struct import unpack, calcsize
 
 from lib.Securer.MyRsa import MyRsa
-from lib.Securer.MyDes import MyDes
+from lib.Securer.MyAes import MyAes
 from lib.Config import srvCenterConf
 from lib.Global import Packager, Logger, DB
 
@@ -86,11 +86,12 @@ class srv(object):
 		myRsa.setPubKey( data )
 		Packager.setEncipherer( self.tname, 'rsa_public', myRsa.publicCrypt )
 		
-		myDes = MyDes()
-		des = myDes.getKey()
-		Packager.setEncipherer( self.tname, 'des', myDes.crypt )
+		myAes = MyAes()
+		myAes.generate()
+		aes = myAes.getKey()
+		Packager.setEncipherer( self.tname, 'des', myAes.crypt )
 		key = int( raw_input( 'Please input your Secret Key: ' ) )
-		keyPackage = Packager.genPackage( self.tname, 'Key', 2, [key, des])
+		keyPackage = Packager.genPackage( self.tname, 'Key', 2, [key, aes])
 		self.send( keyPackage )
 		
 	def Response(self, data):
@@ -100,14 +101,14 @@ class srv(object):
 		data = data[0]
 		terminalNames = data.split( ',' )
 		self.tStatus = []
-		print 'Terminal'+'='*10
+		print 'Terminal'+'='*30
 		for terminal in terminalNames:
 			self.tStatus.append([terminal,0])
 			Logger.info('terminal: %s'%terminal)
 			
 	def TerminalStatus(self, data):
 		data = list(data)
-		print 'Terminal Status'+'='*10
+		print 'Terminal Status'+'='*23
 		for t in self.tStatus:
 			status = data.pop(0)
 			print '%s:%s'%( t[0], (status==1 and 'online') or 'offline' )
@@ -117,7 +118,7 @@ class srv(object):
 			self.o.start()
 		
 	def open(self):
-		print '='*10
+		print '='*38
 		while self.switch:
 			name = raw_input( 'which terminal: ' )
 			for i in range( len( self.tStatus ) ):

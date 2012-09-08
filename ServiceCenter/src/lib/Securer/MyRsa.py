@@ -5,11 +5,12 @@ Created on 2012-8-21
 @author: XPMUser
 '''
 
-import rsa
+from Crypto.Random import random
+from Crypto.PublicKey import RSA
 
 class MyRsa(object):
 	'''
-	classdocs
+	RSA加密类
 	'''
 
 	def __init__(self):
@@ -20,19 +21,39 @@ class MyRsa(object):
 		self.__privateKey = None;
 		
 	def generate(self):
-		( self.__publicKey, self.__privateKey ) = rsa.newkeys( 178 )		#8byte(desKey)+4byte(myKey)需要178
+		self.__privateKey = RSA.generate( 1024 )
+		self.__publicKey = self.__privateKey.publickey()
 		
 	def publicCrypt(self, operate, data):
 		if operate == 'encrypt':
-			return rsa.encrypt( data, self.__publicKey )
+			return self.__publicKey.encrypt( data, random.randint( 0, 999999 ) )[ 0 ]
 		elif operate == 'decrypt':
-			return rsa.decrypt( data, self.__publicKey )
+			return self.__publicKey.decrypt( data )
 
 	def privateCrypt(self, operate, data):
 		if operate == 'encrypt':
-			return rsa.encrypt( data, self.__privateKey )
+			return self.__privateKey.encrypt( data, random.randint( 0, 999999 ) )[ 0 ]
 		elif operate == 'decrypt':
-			return rsa.decrypt( data, self.__privateKey )
+			return self.__privateKey.decrypt( data )
 	
 	def getPubKey(self):
-		return self.__publicKey._save_pkcs1_der()
+		return self.__publicKey.exportKey( 'DER' )
+	
+	def setPubKey(self, publicKey):
+		self.__publicKey = RSA.importKey( publicKey )
+	
+#===============================================================================
+# #unit testing
+# if __name__=='__main__':
+#	myRsa = MyRsa()
+#	myRsa.generate()
+#	bk = myRsa.getPubKey()
+#	print 'bk:%d'%len( bk )
+#	
+#	_myRsa = MyRsa()
+#	_myRsa.setPubKey( bk )
+#	c = _myRsa.publicCrypt( 'encrypt', '1987mxy' )
+#	print 'c:%d'%len( c )
+# 
+#	print myRsa.privateCrypt( 'decrypt', c )
+#===============================================================================
